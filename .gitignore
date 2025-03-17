@@ -1,0 +1,17 @@
+# Ignore Python virtual environment
+venv/
+
+# Ignore Python cache
+__pycache__/
+
+# Ignore environment files
+.env
+
+# Ignore IDE settings
+.idea/
+
+# Ignore compiled Python files
+*.pyc
+
+# Ignore Docker-related files
+.dockerignore
