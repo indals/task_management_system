@@ -1,0 +1,2 @@
+# In .dockerignore file, ensure .env is not excluded
+# .env
