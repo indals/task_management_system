@@ -10,10 +10,10 @@ auth_bp = Blueprint('auth_bp', __name__, url_prefix='/api/auth')
 def register():
     data = request.get_json()
 
-    username = data.get("username")
+    username = data.get("name")
     email = data.get("email")
     password = data.get("password")
-    role = data.get("role", "user")  # Default role is "user"
+    role = data.get("role", "role")  # Default role is "user"
 
     if not username or not email or not password:
         return jsonify({'error': 'Missing required fields'}), 400
@@ -96,3 +96,13 @@ def update_password():
 @auth_bp.route('/ping', methods=['GET'])
 def test():
     return jsonify({"message": "Auth API is working!"}), 200
+
+
+@auth_bp.route('/users', methods=['GET'])
+@jwt_required()  # Protect this route, only authenticated users can access
+def get_users():
+    """
+    Returns a list of all users with only their id and name.
+    """
+    users = AuthService.get_all_users_ids_and_names()
+    return jsonify(users), 200

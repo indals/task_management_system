@@ -46,9 +46,49 @@ class AnalyticsService:
         ).all()
         return [task.to_dict() for task in tasks]
 
-    @staticmethod
-    def get_task_completion_rate(user_id, time_period):
-        query = Task.query.filter_by(assignee_id=user_id)  # Filter tasks for the user
-        # Apply filtering based on `time_period` logic (week, month, year)
-        # Compute completion rate and return stats
+    # @staticmethod
+    # def get_task_completion_rate(user_id, time_period):
+    #     query = Task.query.filter_by(assignee_id=user_id)  # Filter tasks for the user
+    #     # Apply filtering based on `time_period` logic (week, month, year)
+    #     # Compute completion rate and return stats
 
+    @staticmethod
+    def get_task_completion_rate(user_id, time_period='month'):
+        """Returns task completion rate for a specific time period."""
+        from datetime import datetime, timedelta
+
+        # Calculate the date range based on time_period
+        now = datetime.utcnow()
+        if time_period == 'week':
+            start_date = now - timedelta(days=7)
+        elif time_period == 'month':
+            start_date = now - timedelta(days=30)
+        elif time_period == 'year':
+            start_date = now - timedelta(days=365)
+        else:
+            return {'error': 'Invalid time period. Choose week, month, or year'}, 400
+
+        # Get all tasks for the user in the time period
+        total_tasks = Task.query.filter(
+            Task.assigned_to_id == user_id,
+            Task.created_at >= start_date
+        ).count()
+
+        # Get completed tasks
+        completed_tasks = Task.query.filter(
+            Task.assigned_to_id == user_id,
+            Task.status == TaskStatus.COMPLETED,
+            Task.created_at >= start_date
+        ).count()
+
+        # Calculate completion rate
+        completion_rate = (completed_tasks / total_tasks) if total_tasks > 0 else 0
+
+        return {
+            'time_period': time_period,
+            'total_tasks': total_tasks,
+            'completed_tasks': completed_tasks,
+            'completion_rate': completion_rate,
+            'start_date': start_date.isoformat(),
+            'end_date': now.isoformat()
+        }

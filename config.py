@@ -22,7 +22,7 @@ class DevelopmentConfig(Config):
     """Development environment settings."""
     DEBUG = True
     SQLALCHEMY_ECHO = True  # Enables SQL query logging for debugging
-    SQLALCHEMY_DATABASE_URI = 'postgresql://taskmanager_user:taskmanager_password@localhost/taskdb'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:VGbtoCXHgBeOUzXmFxIULvZfZbwXqnDM@hopper.proxy.rlwy.net:20422/railway'
 
 
 class ProductionConfig(Config):

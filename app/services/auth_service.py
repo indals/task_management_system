@@ -92,3 +92,14 @@ class AuthService:
         except Exception as e:
             db.session.rollback()
             return {'error': f'Error updating profile: {str(e)}'}, 400
+
+    @staticmethod
+    def get_all_users_ids_and_names():
+        """
+        Fetches all users and returns a list of dictionaries containing their id and name.
+        """
+        try:
+            users = User.get_all_user_ids_and_names()  # Use the model method
+            return users
+        except Exception as e:
+            return {'error': f'Failed to fetch users: {str(e)}'}

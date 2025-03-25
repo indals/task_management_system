@@ -14,3 +14,4 @@ pytest  # Testing framework
 pytest-flask  # Flask testing utilities
 faker  # Fake data generator (useful for tests)
 flask_socketio  # WebSocket support
+flask-cors

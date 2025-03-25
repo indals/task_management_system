@@ -65,3 +65,12 @@ class User(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+
+    @classmethod
+    def get_all_user_ids_and_names(cls):
+        """
+        Fetches all users from the database and returns a list of dictionaries,
+        where each dictionary contains the user's id and name.
+        """
+        users = cls.query.all()
+        return [{"id": user.id, "name": user.name} for user in users]
