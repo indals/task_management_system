@@ -12,6 +12,13 @@ alembic  # Required for Flask-Migrate
 flask-debugtoolbar  # Debugging tool
 pytest  # Testing framework
 pytest-flask  # Flask testing utilities
-# faker  # Fake data generator (useful for tests)
 flask_socketio  # WebSocket support
 flask-cors
+Pillow  # Image processing for avatars/attachments
+python-dateutil  # Enhanced date parsing
+celery  # Background task processing
+redis  # Caching and message broker
+flask-limiter  # Rate limiting
+email-validator  # Email validation
+bcrypt  # Enhanced password hashing
+python-magic  # File type detection
