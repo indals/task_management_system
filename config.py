@@ -1,3 +1,4 @@
+#config.py
 class Config:
     """Base configuration with default settings."""
     SECRET_KEY = "your_secret_key"
@@ -22,7 +23,7 @@ class DevelopmentConfig(Config):
     """Development environment settings."""
     DEBUG = True
     SQLALCHEMY_ECHO = True  # Enables SQL query logging for debugging
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:VGbtoCXHgBeOUzXmFxIULvZfZbwXqnDM@hopper.proxy.rlwy.net:20422/railway'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://myuser:ChangeMe123!@dev-database.c1qe2o6s6oix.ap-south-1.rds.amazonaws.com:5432/myapp'
 
 
 class ProductionConfig(Config):

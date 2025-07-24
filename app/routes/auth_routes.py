@@ -13,7 +13,7 @@ def register():
     username = data.get("name")
     email = data.get("email")
     password = data.get("password")
-    role = data.get("role", "role")  # Default role is "user"
+    role = data.get("role", "EMPLOYEE")  # Default role is "user"
 
     if not username or not email or not password:
         return jsonify({'error': 'Missing required fields'}), 400

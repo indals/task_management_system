@@ -37,8 +37,8 @@ class AuthService:
 
         # Return JWT tokens and user info
         return {
-            'access_token': create_access_token(identity=user.id),
-            'refresh_token': create_refresh_token(identity=user.id),
+            'access_token': create_access_token(identity=str(user.id)),
+            'refresh_token': create_refresh_token(identity=str(user.id)),
             'user': user.to_dict()  # Assuming `to_dict` is implemented in the User model
         }
 
@@ -66,7 +66,7 @@ class AuthService:
         user = User.query.get_or_404(current_user_id)
 
         return {
-            'access_token': create_access_token(identity=user.id),
+            'access_token': create_access_token(identity=str(user.id)),
             'user': user.to_dict()
         }
 

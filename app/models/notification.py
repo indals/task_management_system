@@ -1,3 +1,4 @@
+# app/models/notification.py
 from app import db
 from datetime import datetime
 
@@ -10,8 +11,9 @@ class Notification(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    user = db.relationship("User", backref="user_notifications")  # Change backref name to something else
-    task = db.relationship("Task", backref="task_notifications")
+    # Relationships
+    user = db.relationship("User", back_populates="notifications")
+    task = db.relationship("Task", back_populates="notifications")
 
     def to_dict(self):
         return {
@@ -21,5 +23,7 @@ class Notification(db.Model):
             'message': self.message,
             'read': self.read,
             'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'updated_at': self.updated_at.isoformat(),
+            'user': self.user.to_dict() if self.user else None,
+            'task': {'id': self.task.id, 'title': self.task.title} if self.task else None
         }

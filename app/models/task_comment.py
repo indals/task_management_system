@@ -1,3 +1,4 @@
+# app/models/task_comment.py
 from app import db
 from datetime import datetime
 
@@ -9,8 +10,9 @@ class TaskComment(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Use a different backref name to avoid conflict
-    task = db.relationship('Task', backref='task_comments', cascade='all, delete-orphan', single_parent=True)
+    # Relationships
+    task = db.relationship('Task', back_populates='comments')
+    user = db.relationship('User', back_populates='task_comments')
 
     def to_dict(self):
         return {
@@ -19,5 +21,6 @@ class TaskComment(db.Model):
             'user_id': self.user_id,
             'comment': self.comment,
             'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'updated_at': self.updated_at.isoformat(),
+            'user': self.user.to_dict() if self.user else None
         }

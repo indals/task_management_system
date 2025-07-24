@@ -1,15 +1,9 @@
 # run.py
 from app import create_app, db
-from flask_migrate import Migrate
 from app.urls import register_routes
-from flask_cors import CORS
 
 # Create the app
-app = create_app('development')  # or any config you are using
-
-# Initialize Flask-Migrate
-migrate = Migrate(app, db)
-
+app = create_app('development')
 
 # Register routes
 register_routes(app)

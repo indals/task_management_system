@@ -1,5 +1,4 @@
 #urls.py
-from flask import Flask
 from app.routes.auth_routes import auth_bp  # Import auth_bp from auth_routes
 from app.routes.task_routes import task_bp
 from app.routes.notification_routes import notification_bp
@@ -27,3 +26,4 @@ def register_routes(app):
     app.register_blueprint(task_bp)
     app.register_blueprint(notification_bp)
     app.register_blueprint(analytics_bp)
+    print(f"Registered Blueprints after: {app.blueprints.keys()}")  # Debugging

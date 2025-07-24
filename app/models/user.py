@@ -1,3 +1,4 @@
+# app/models/user.py
 from app import db
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -12,10 +13,14 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    created_tasks = db.relationship('Task', foreign_keys='Task.created_by_id', back_populates='creator')
+    # Task relationships
+    created_tasks = db.relationship('Task', foreign_keys='Task.created_by_id', back_populates='creator', cascade='all, delete-orphan')
     assigned_tasks = db.relationship('Task', foreign_keys='Task.assigned_to_id', back_populates='assignee')
-
-    notifications = db.relationship('Notification', back_populates='user', cascade="all, delete-orphan")
+    
+    # Other relationships
+    notifications = db.relationship('Notification', back_populates='user', cascade='all, delete-orphan')
+    owned_projects = db.relationship('Project', back_populates='owner', cascade='all, delete-orphan')
+    task_comments = db.relationship('TaskComment', back_populates='user', cascade='all, delete-orphan')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -50,7 +55,7 @@ class User(db.Model):
     def assign_task(self, task):
         if task.assigned_to_id is not None:
             raise ValueError("Task is already assigned to someone else.")
-        task.assigned_to_id = self.id  # Assigning by ID instead of object reference
+        task.assigned_to_id = self.id
         db.session.commit()
 
     def get_tasks(self):
@@ -68,9 +73,5 @@ class User(db.Model):
 
     @classmethod
     def get_all_user_ids_and_names(cls):
-        """
-        Fetches all users from the database and returns a list of dictionaries,
-        where each dictionary contains the user's id and name.
-        """
         users = cls.query.all()
         return [{"id": user.id, "name": user.name} for user in users]
