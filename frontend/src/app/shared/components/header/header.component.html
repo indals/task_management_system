@@ -1,0 +1,73 @@
+<mat-toolbar color="primary" class="header-toolbar">
+  <div class="header-content">
+    <!-- Logo and Title -->
+    <div class="logo-section" (click)="navigateTo('/dashboard')">
+      <mat-icon class="logo-icon">task_alt</mat-icon>
+      <span class="app-title">TaskManager</span>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="nav-menu" *ngIf="currentUser">
+      <button mat-button (click)="navigateTo('/dashboard')">
+        <mat-icon>dashboard</mat-icon>
+        Dashboard
+      </button>
+      
+      <button mat-button (click)="navigateTo('/tasks')">
+        <mat-icon>assignment</mat-icon>
+        Tasks
+      </button>
+      
+      <button mat-button *ngIf="isManager()" (click)="navigateTo('/projects')">
+        <mat-icon>folder</mat-icon>
+        Projects
+      </button>
+      
+      <button mat-button *ngIf="isManager()" (click)="navigateTo('/analytics')">
+        <mat-icon>analytics</mat-icon>
+        Analytics
+      </button>
+    </nav>
+
+    <!-- Right Side Actions -->
+    <div class="header-actions" *ngIf="currentUser">
+      <!-- Notifications -->
+      <button mat-icon-button (click)="navigateTo('/notifications')" class="notification-btn">
+        <mat-icon matBadge="{{unreadNotificationCount}}" 
+                  [matBadgeHidden]="unreadNotificationCount === 0"
+                  matBadgeColor="warn">
+          notifications
+        </mat-icon>
+      </button>
+
+      <!-- User Menu -->
+      <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-btn">
+        <mat-icon>account_circle</mat-icon>
+        <span class="user-name">{{currentUser.name}}</span>
+        <mat-icon>keyboard_arrow_down</mat-icon>
+      </button>
+
+      <mat-menu #userMenu="matMenu">
+        <div class="user-info">
+          <div class="user-name">{{currentUser.name}}</div>
+          <div class="user-email">{{currentUser.email}}</div>
+          <div class="user-role">{{currentUser.role}}</div>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="navigateTo('/profile')">
+          <mat-icon>person</mat-icon>
+          Profile
+        </button>
+        <button mat-menu-item (click)="navigateTo('/settings')">
+          <mat-icon>settings</mat-icon>
+          Settings
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          Logout
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+</mat-toolbar>

@@ -1,0 +1,97 @@
+<div class="login-container">
+  <div class="login-card">
+    <mat-card>
+      <mat-card-header>
+        <div class="login-header">
+          <mat-icon class="login-icon">task_alt</mat-icon>
+          <mat-card-title>TaskManager</mat-card-title>
+          <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+          <!-- Email Field -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput 
+                   type="email" 
+                   formControlName="email"
+                   placeholder="Enter your email"
+                   autocomplete="email">
+            <mat-icon matSuffix>email</mat-icon>
+            <mat-error *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+              {{ getErrorMessage('email') }}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Password Field -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Password</mat-label>
+            <input matInput 
+                   [type]="hidePassword ? 'password' : 'text'"
+                   formControlName="password"
+                   placeholder="Enter your password"
+                   autocomplete="current-password">
+            <button mat-icon-button 
+                    matSuffix 
+                    type="button"
+                    (click)="hidePassword = !hidePassword"
+                    [attr.aria-label]="'Hide password'"
+                    [attr.aria-pressed]="hidePassword">
+              <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+              {{ getErrorMessage('password') }}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Login Button -->
+          <button mat-raised-button 
+                  color="primary" 
+                  type="submit"
+                  class="login-button full-width"
+                  [disabled]="loginForm.invalid || isLoading">
+            <mat-spinner *ngIf="isLoading" diameter="20" class="login-spinner"></mat-spinner>
+            <span *ngIf="!isLoading">Sign In</span>
+            <span *ngIf="isLoading">Signing In...</span>
+          </button>
+
+          <!-- Divider -->
+          <div class="divider">
+            <span>or</span>
+          </div>
+
+          <!-- Register Link -->
+          <button mat-stroked-button 
+                  type="button"
+                  class="register-button full-width"
+                  (click)="navigateToRegister()">
+            Create New Account
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Demo Credentials -->
+    <mat-card class="demo-card">
+      <mat-card-header>
+        <mat-card-title>Demo Credentials</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="demo-credentials">
+          <div class="demo-user">
+            <strong>Manager:</strong>
+            <div>Email: manager@example.com</div>
+            <div>Password: password123</div>
+          </div>
+          <div class="demo-user">
+            <strong>Employee:</strong>
+            <div>Email: employee@example.com</div>
+            <div>Password: password123</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
