@@ -28,18 +28,23 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+        ssh-keyscan -H ${{ vars.EC2_HOST }} >> ~/.ssh/known_hosts
 
     - name: Copy files to EC2
       run: |
-        scp -i ~/.ssh/id_rsa -r . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/flask-app
+        scp -i ~/.ssh/id_rsa -r . ${{ vars.EC2_USER }}@${{ vars.EC2_HOST }}:/home/${{ vars.EC2_USER }}/flask-app
 
     - name: Run Flask App on EC2
       run: |
-        ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+        ssh -i ~/.ssh/id_rsa ${{ vars.EC2_USER }}@${{ vars.EC2_HOST }} << 'EOF'
           cd flask-app
           sudo apt update
           sudo apt install -y python3-pip
           pip3 install -r requirements.txt
           nohup python3 run.py > app.log 2>&1 &
         EOF
+    - name: Notify Deployment Success
+      run: |
+        echo "Deployment to EC2 successful!"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
