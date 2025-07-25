@@ -26,7 +26,7 @@ class Notification(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
-    user = db.relationship('User', foreign_keys=[user_id], back_populates='notifications')
+    user = db.relationship('User', back_populates='notifications', foreign_keys=[user_id])
     task = db.relationship('Task', back_populates='notifications')
     related_user = db.relationship('User', foreign_keys=[related_user_id])
     project = db.relationship('Project')

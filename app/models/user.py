@@ -41,7 +41,7 @@ class User(db.Model):
     project_memberships = db.relationship('ProjectMember', back_populates='user', cascade='all, delete-orphan')
     
     # Other relationships
-    notifications = db.relationship('Notification', back_populates='user', cascade='all, delete-orphan')
+    notifications = db.relationship('Notification', back_populates='user', foreign_keys='Notification.user_id')
     task_comments = db.relationship('TaskComment', back_populates='user', cascade='all, delete-orphan')
 
     def set_password(self, password):
