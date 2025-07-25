@@ -603,6 +603,66 @@ Content-Type: application/json
 
 ---
 
+### Get Time Logs for Task
+**Endpoint:** `GET /api/tasks/{task_id}/time`  
+**Description:** Get time logs for a specific task  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `task_id` (integer, required) - Task ID
+
+**Response Example (200 OK):**
+```json
+{
+  "task": {
+    "id": 1,
+    "title": "Implement user authentication",
+    "total_logged_hours": 12.5
+  },
+  "time_logs": [
+    {
+      "id": 1,
+      "user_id": 2,
+      "hours": 3.5,
+      "description": "Implemented JWT authentication middleware",
+      "work_date": "2024-01-17",
+      "user": {
+        "id": 2,
+        "name": "Jane Smith"
+      },
+      "created_at": "2024-01-17T16:30:00Z"
+    },
+    {
+      "id": 2,
+      "user_id": 2,
+      "hours": 4.0,
+      "description": "Added user registration endpoint",
+      "work_date": "2024-01-18",
+      "user": {
+        "id": 2,
+        "name": "Jane Smith"
+      },
+      "created_at": "2024-01-18T17:00:00Z"
+    }
+  ],
+  "total_hours": 12.5,
+  "contributors": [
+    {
+      "user_id": 2,
+      "name": "Jane Smith",
+      "hours": 12.5
+    }
+  ]
+}
+```
+
+---
+
 ### Get Overdue Tasks
 **Endpoint:** `GET /api/tasks/overdue`  
 **Description:** Get all overdue tasks for the current user  
@@ -1001,6 +1061,725 @@ Authorization: Bearer <access_token>
 
 ---
 
+## Sprints
+
+### Create Sprint
+**Endpoint:** `POST /api/sprints`  
+**Description:** Create a new sprint for agile project management  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "name": "Sprint 1 - Authentication Module",
+  "description": "Focus on implementing user authentication and security features",
+  "project_id": 1,
+  "start_date": "2024-02-01T09:00:00Z",
+  "end_date": "2024-02-14T17:00:00Z",
+  "goal": "Complete user authentication system with JWT tokens",
+  "capacity_hours": 80.0,
+  "velocity_points": 21
+}
+```
+
+**Response Example (201 Created):**
+```json
+{
+  "message": "Sprint created successfully",
+  "sprint": {
+    "id": 1,
+    "name": "Sprint 1 - Authentication Module",
+    "description": "Focus on implementing user authentication and security features",
+    "status": "PLANNED",
+    "project_id": 1,
+    "start_date": "2024-02-01T09:00:00Z",
+    "end_date": "2024-02-14T17:00:00Z",
+    "goal": "Complete user authentication system with JWT tokens",
+    "capacity_hours": 80.0,
+    "velocity_points": 21,
+    "tasks_count": 0,
+    "created_at": "2024-01-15T12:00:00Z",
+    "updated_at": "2024-01-15T12:00:00Z"
+  }
+}
+```
+
+---
+
+### Get Sprint by ID
+**Endpoint:** `GET /api/sprints/{sprint_id}`  
+**Description:** Get a specific sprint by ID with optional task details  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `sprint_id` (integer, required) - Sprint ID
+
+**Query Parameters:**
+- `include_tasks` (boolean, optional) - Include sprint tasks in response
+
+**Example Request:**
+```
+GET /api/sprints/1?include_tasks=true
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "id": 1,
+  "name": "Sprint 1 - Authentication Module",
+  "description": "Focus on implementing user authentication and security features",
+  "status": "ACTIVE",
+  "project_id": 1,
+  "project": {
+    "id": 1,
+    "name": "Task Management System"
+  },
+  "start_date": "2024-02-01T09:00:00Z",
+  "end_date": "2024-02-14T17:00:00Z",
+  "goal": "Complete user authentication system with JWT tokens",
+  "capacity_hours": 80.0,
+  "velocity_points": 21,
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Implement user authentication",
+      "status": "IN_PROGRESS",
+      "priority": "HIGH",
+      "story_points": 8,
+      "assignee": {
+        "id": 2,
+        "name": "Jane Smith"
+      }
+    }
+  ],
+  "tasks_count": 5,
+  "completed_tasks": 2,
+  "remaining_points": 13,
+  "created_at": "2024-01-15T12:00:00Z",
+  "updated_at": "2024-02-01T09:00:00Z"
+}
+```
+
+---
+
+### Update Sprint
+**Endpoint:** `PUT /api/sprints/{sprint_id}`  
+**Description:** Update sprint information  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Path Parameters:**
+- `sprint_id` (integer, required) - Sprint ID
+
+**Request Body:**
+```json
+{
+  "name": "Sprint 1 - Authentication & Security Module",
+  "description": "Updated description with security focus",
+  "goal": "Complete authentication system with enhanced security features",
+  "capacity_hours": 90.0
+}
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "message": "Sprint updated successfully",
+  "sprint": {
+    "id": 1,
+    "name": "Sprint 1 - Authentication & Security Module",
+    "description": "Updated description with security focus",
+    "goal": "Complete authentication system with enhanced security features",
+    "capacity_hours": 90.0,
+    "updated_at": "2024-02-02T10:30:00Z"
+  }
+}
+```
+
+---
+
+### Delete Sprint
+**Endpoint:** `DELETE /api/sprints/{sprint_id}`  
+**Description:** Delete a sprint  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `sprint_id` (integer, required) - Sprint ID
+
+**Response Example (200 OK):**
+```json
+{
+  "message": "Sprint deleted successfully"
+}
+```
+
+---
+
+### Get Project Sprints
+**Endpoint:** `GET /api/sprints/project/{project_id}`  
+**Description:** Get all sprints for a specific project  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `project_id` (integer, required) - Project ID
+
+**Response Example (200 OK):**
+```json
+{
+  "sprints": [
+    {
+      "id": 1,
+      "name": "Sprint 1 - Authentication Module",
+      "status": "COMPLETED",
+      "start_date": "2024-02-01T09:00:00Z",
+      "end_date": "2024-02-14T17:00:00Z",
+      "tasks_count": 5,
+      "completed_tasks": 5,
+      "velocity_points": 21
+    },
+    {
+      "id": 2,
+      "name": "Sprint 2 - Task Management",
+      "status": "ACTIVE",
+      "start_date": "2024-02-15T09:00:00Z",
+      "end_date": "2024-02-28T17:00:00Z",
+      "tasks_count": 7,
+      "completed_tasks": 3,
+      "velocity_points": 28
+    }
+  ],
+  "total": 2
+}
+```
+
+---
+
+### Start Sprint
+**Endpoint:** `POST /api/sprints/{sprint_id}/start`  
+**Description:** Start a planned sprint  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `sprint_id` (integer, required) - Sprint ID
+
+**Response Example (200 OK):**
+```json
+{
+  "message": "Sprint started successfully",
+  "sprint": {
+    "id": 1,
+    "name": "Sprint 1 - Authentication Module",
+    "status": "ACTIVE",
+    "started_at": "2024-02-01T09:00:00Z"
+  }
+}
+```
+
+---
+
+### Complete Sprint
+**Endpoint:** `POST /api/sprints/{sprint_id}/complete`  
+**Description:** Complete an active sprint  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `sprint_id` (integer, required) - Sprint ID
+
+**Response Example (200 OK):**
+```json
+{
+  "message": "Sprint completed successfully",
+  "sprint": {
+    "id": 1,
+    "name": "Sprint 1 - Authentication Module",
+    "status": "COMPLETED",
+    "completed_at": "2024-02-14T17:00:00Z",
+    "velocity_achieved": 21,
+    "completion_rate": 100
+  }
+}
+```
+
+---
+
+### Get Sprint Burndown Chart
+**Endpoint:** `GET /api/sprints/{sprint_id}/burndown`  
+**Description:** Get burndown chart data for sprint progress tracking  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `sprint_id` (integer, required) - Sprint ID
+
+**Response Example (200 OK):**
+```json
+{
+  "sprint": {
+    "id": 1,
+    "name": "Sprint 1 - Authentication Module",
+    "start_date": "2024-02-01T09:00:00Z",
+    "end_date": "2024-02-14T17:00:00Z",
+    "total_points": 21
+  },
+  "burndown_data": [
+    {
+      "date": "2024-02-01",
+      "remaining_points": 21,
+      "ideal_remaining": 21,
+      "completed_points": 0
+    },
+    {
+      "date": "2024-02-02",
+      "remaining_points": 18,
+      "ideal_remaining": 19.5,
+      "completed_points": 3
+    },
+    {
+      "date": "2024-02-05",
+      "remaining_points": 13,
+      "ideal_remaining": 15.75,
+      "completed_points": 8
+    }
+  ],
+  "completion_rate": 62,
+  "velocity": 8,
+  "days_remaining": 7
+}
+```
+
+---
+
+### Add Task to Sprint
+**Endpoint:** `POST /api/sprints/{sprint_id}/tasks/{task_id}`  
+**Description:** Add a task to a sprint  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `sprint_id` (integer, required) - Sprint ID
+- `task_id` (integer, required) - Task ID
+
+**Response Example (200 OK):**
+```json
+{
+  "message": "Task added to sprint successfully",
+  "task": {
+    "id": 5,
+    "title": "Implement password reset functionality",
+    "sprint_id": 1,
+    "story_points": 5
+  }
+}
+```
+
+---
+
+### Remove Task from Sprint
+**Endpoint:** `DELETE /api/sprints/{sprint_id}/tasks/{task_id}`  
+**Description:** Remove a task from a sprint  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `sprint_id` (integer, required) - Sprint ID
+- `task_id` (integer, required) - Task ID
+
+**Response Example (200 OK):**
+```json
+{
+  "message": "Task removed from sprint successfully"
+}
+```
+
+---
+
+## Notifications
+
+### Get User Notifications
+**Endpoint:** `GET /api/notifications`  
+**Description:** Get notifications for the authenticated user  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+- `unread_only` (boolean, optional) - Get only unread notifications
+
+**Example Request:**
+```
+GET /api/notifications?unread_only=true
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "notifications": [
+    {
+      "id": 1,
+      "type": "TASK_ASSIGNED",
+      "title": "New Task Assigned",
+      "message": "You have been assigned to task: Implement user authentication",
+      "task_id": 1,
+      "task": {
+        "id": 1,
+        "title": "Implement user authentication",
+        "priority": "HIGH"
+      },
+      "related_user": {
+        "id": 3,
+        "name": "Bob Wilson",
+        "email": "bob.wilson@example.com"
+      },
+      "project_id": 1,
+      "read": false,
+      "created_at": "2024-01-17T10:30:00Z"
+    },
+    {
+      "id": 2,
+      "type": "COMMENT_ADDED",
+      "title": "New Comment on Task",
+      "message": "Jane Smith commented on: Fix login bug",
+      "task_id": 5,
+      "related_user_id": 2,
+      "read": false,
+      "created_at": "2024-01-17T14:20:00Z"
+    }
+  ],
+  "total": 2,
+  "unread_count": 2
+}
+```
+
+---
+
+### Mark Notification as Read
+**Endpoint:** `POST /api/notifications/{notification_id}/read`  
+**Description:** Mark a specific notification as read  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `notification_id` (integer, required) - Notification ID
+
+**Response Example (200 OK):**
+```json
+{
+  "message": "Notification marked as read",
+  "notification": {
+    "id": 1,
+    "read": true,
+    "read_at": "2024-01-17T16:45:00Z"
+  }
+}
+```
+
+---
+
+### Mark All Notifications as Read
+**Endpoint:** `POST /api/notifications/read-all`  
+**Description:** Mark all notifications as read for the authenticated user  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "message": "All notifications marked as read",
+  "updated_count": 5
+}
+```
+
+---
+
+### Delete Notification
+**Endpoint:** `DELETE /api/notifications/{notification_id}`  
+**Description:** Delete a specific notification  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `notification_id` (integer, required) - Notification ID
+
+**Response Example (200 OK):**
+```json
+{
+  "message": "Notification deleted successfully"
+}
+```
+
+---
+
+## Analytics
+
+### Get Task Completion Analytics
+**Endpoint:** `GET /api/analytics/task-completion`  
+**Description:** Get task completion rate analytics for performance tracking  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+- `user_id` (integer, optional) - Specific user ID (admin only)
+- `period` (string, optional) - Time period: 'week', 'month', 'year' (default: 'month')
+
+**Example Request:**
+```
+GET /api/analytics/task-completion?period=month&user_id=2
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "user": {
+    "id": 2,
+    "name": "Jane Smith"
+  },
+  "period": "month",
+  "completion_rate": 85.5,
+  "total_tasks": 23,
+  "completed_tasks": 20,
+  "in_progress_tasks": 2,
+  "overdue_tasks": 1,
+  "average_completion_time": 2.5,
+  "productivity_trend": "increasing",
+  "daily_breakdown": [
+    {
+      "date": "2024-01-01",
+      "completed": 2,
+      "created": 3
+    },
+    {
+      "date": "2024-01-02",
+      "completed": 1,
+      "created": 2
+    }
+  ]
+}
+```
+
+---
+
+### Get User Productivity Analytics
+**Endpoint:** `GET /api/analytics/user-productivity`  
+**Description:** Get detailed user productivity metrics  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+- `user_id` (integer, optional) - Specific user ID (defaults to current user)
+
+**Response Example (200 OK):**
+```json
+{
+  "user": {
+    "id": 2,
+    "name": "Jane Smith",
+    "role": "DEVELOPER"
+  },
+  "performance_metrics": {
+    "total_tasks_completed": 45,
+    "average_task_completion_time": 2.3,
+    "on_time_completion_rate": 92.5,
+    "total_hours_logged": 180.5,
+    "average_daily_hours": 7.2,
+    "efficiency_score": 88.7
+  },
+  "monthly_stats": {
+    "tasks_completed": 12,
+    "hours_worked": 85.5,
+    "projects_contributed": 3,
+    "comments_made": 28
+  },
+  "task_type_breakdown": {
+    "FEATURE": 18,
+    "BUG": 15,
+    "ENHANCEMENT": 8,
+    "REFACTOR": 4
+  },
+  "priority_handling": {
+    "CRITICAL": 3,
+    "HIGH": 12,
+    "MEDIUM": 20,
+    "LOW": 10
+  }
+}
+```
+
+---
+
+### Get Task Status Distribution
+**Endpoint:** `GET /api/analytics/task-status-distribution`  
+**Description:** Get distribution of tasks by status across the system  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "total_tasks": 156,
+  "status_distribution": {
+    "BACKLOG": {
+      "count": 25,
+      "percentage": 16.0
+    },
+    "TODO": {
+      "count": 18,
+      "percentage": 11.5
+    },
+    "IN_PROGRESS": {
+      "count": 32,
+      "percentage": 20.5
+    },
+    "IN_REVIEW": {
+      "count": 12,
+      "percentage": 7.7
+    },
+    "TESTING": {
+      "count": 8,
+      "percentage": 5.1
+    },
+    "DONE": {
+      "count": 55,
+      "percentage": 35.3
+    },
+    "BLOCKED": {
+      "count": 4,
+      "percentage": 2.6
+    },
+    "CANCELLED": {
+      "count": 2,
+      "percentage": 1.3
+    }
+  },
+  "completion_rate": 35.3,
+  "active_tasks": 70
+}
+```
+
+---
+
+### Get Task Priority Distribution
+**Endpoint:** `GET /api/analytics/task-priority-distribution`  
+**Description:** Get distribution of tasks by priority levels  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "total_tasks": 156,
+  "priority_distribution": {
+    "CRITICAL": {
+      "count": 8,
+      "percentage": 5.1,
+      "avg_completion_time": 1.2
+    },
+    "HIGH": {
+      "count": 35,
+      "percentage": 22.4,
+      "avg_completion_time": 2.1
+    },
+    "MEDIUM": {
+      "count": 78,
+      "percentage": 50.0,
+      "avg_completion_time": 3.5
+    },
+    "LOW": {
+      "count": 35,
+      "percentage": 22.4,
+      "avg_completion_time": 5.2
+    }
+  },
+  "high_priority_completion_rate": 89.5,
+  "overdue_by_priority": {
+    "CRITICAL": 0,
+    "HIGH": 2,
+    "MEDIUM": 5,
+    "LOW": 8
+  }
+}
+```
+
+---
+
 ## Enums
 
 ### Get All Enums
@@ -1064,7 +1843,180 @@ Authorization: Bearer <access_token>
     "ON_HOLD": "ON_HOLD",
     "COMPLETED": "COMPLETED",
     "CANCELLED": "CANCELLED"
+  },
+  "SprintStatus": {
+    "PLANNED": "PLANNED",
+    "ACTIVE": "ACTIVE",
+    "COMPLETED": "COMPLETED",
+    "CANCELLED": "CANCELLED"
+  },
+  "NotificationType": {
+    "TASK_ASSIGNED": "TASK_ASSIGNED",
+    "TASK_UPDATED": "TASK_UPDATED",
+    "TASK_COMPLETED": "TASK_COMPLETED",
+    "TASK_OVERDUE": "TASK_OVERDUE",
+    "COMMENT_ADDED": "COMMENT_ADDED",
+    "PROJECT_UPDATED": "PROJECT_UPDATED",
+    "SPRINT_STARTED": "SPRINT_STARTED",
+    "SPRINT_COMPLETED": "SPRINT_COMPLETED",
+    "MENTION": "MENTION"
+  },
+  "EstimationUnit": {
+    "HOURS": "HOURS",
+    "DAYS": "DAYS",
+    "STORY_POINTS": "STORY_POINTS"
   }
+}
+```
+
+---
+
+### Get User Roles
+**Endpoint:** `GET /api/enums/user-roles`  
+**Description:** Get available user role options  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "ADMIN": "ADMIN",
+  "PROJECT_MANAGER": "PROJECT_MANAGER",
+  "TEAM_LEAD": "TEAM_LEAD",
+  "SENIOR_DEVELOPER": "SENIOR_DEVELOPER",
+  "DEVELOPER": "DEVELOPER",
+  "QA_ENGINEER": "QA_ENGINEER",
+  "DEVOPS_ENGINEER": "DEVOPS_ENGINEER",
+  "UI_UX_DESIGNER": "UI_UX_DESIGNER",
+  "BUSINESS_ANALYST": "BUSINESS_ANALYST",
+  "PRODUCT_OWNER": "PRODUCT_OWNER",
+  "SCRUM_MASTER": "SCRUM_MASTER"
+}
+```
+
+---
+
+### Get Task Statuses
+**Endpoint:** `GET /api/enums/task-statuses`  
+**Description:** Get available task status options  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "BACKLOG": "BACKLOG",
+  "TODO": "TODO",
+  "IN_PROGRESS": "IN_PROGRESS",
+  "IN_REVIEW": "IN_REVIEW",
+  "TESTING": "TESTING",
+  "BLOCKED": "BLOCKED",
+  "DONE": "DONE",
+  "CANCELLED": "CANCELLED",
+  "DEPLOYED": "DEPLOYED"
+}
+```
+
+---
+
+### Get Task Priorities
+**Endpoint:** `GET /api/enums/task-priorities`  
+**Description:** Get available task priority options  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "CRITICAL": "CRITICAL",
+  "HIGH": "HIGH",
+  "MEDIUM": "MEDIUM",
+  "LOW": "LOW"
+}
+```
+
+---
+
+### Get Task Types
+**Endpoint:** `GET /api/enums/task-types`  
+**Description:** Get available task type options  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "FEATURE": "FEATURE",
+  "BUG": "BUG",
+  "ENHANCEMENT": "ENHANCEMENT",
+  "REFACTOR": "REFACTOR",
+  "DOCUMENTATION": "DOCUMENTATION",
+  "TESTING": "TESTING",
+  "DEPLOYMENT": "DEPLOYMENT",
+  "RESEARCH": "RESEARCH",
+  "MAINTENANCE": "MAINTENANCE",
+  "SECURITY": "SECURITY"
+}
+```
+
+---
+
+### Get Project Statuses
+**Endpoint:** `GET /api/enums/project-statuses`  
+**Description:** Get available project status options  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "PLANNING": "PLANNING",
+  "ACTIVE": "ACTIVE",
+  "ON_HOLD": "ON_HOLD",
+  "COMPLETED": "COMPLETED",
+  "CANCELLED": "CANCELLED"
+}
+```
+
+---
+
+### Get Sprint Statuses
+**Endpoint:** `GET /api/enums/sprint-statuses`  
+**Description:** Get available sprint status options  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "PLANNED": "PLANNED",
+  "ACTIVE": "ACTIVE",
+  "COMPLETED": "COMPLETED",
+  "CANCELLED": "CANCELLED"
 }
 ```
 
@@ -1246,6 +2198,42 @@ All error responses follow this format:
   "description": "Implemented JWT authentication middleware",
   "work_date": "2024-01-17",
   "created_at": "2024-01-17T16:30:00Z"
+}
+```
+
+### Sprint Model
+```json
+{
+  "id": 1,
+  "name": "Sprint 1 - Authentication Module",
+  "description": "Focus on implementing user authentication and security features",
+  "status": "ACTIVE",
+  "project_id": 1,
+  "start_date": "2024-02-01T09:00:00Z",
+  "end_date": "2024-02-14T17:00:00Z",
+  "goal": "Complete user authentication system with JWT tokens",
+  "capacity_hours": 80.0,
+  "velocity_points": 21,
+  "created_at": "2024-01-15T12:00:00Z",
+  "updated_at": "2024-02-01T09:00:00Z"
+}
+```
+
+### Notification Model
+```json
+{
+  "id": 1,
+  "user_id": 2,
+  "task_id": 1,
+  "type": "TASK_ASSIGNED",
+  "title": "New Task Assigned",
+  "message": "You have been assigned to task: Implement user authentication",
+  "related_user_id": 3,
+  "project_id": 1,
+  "sprint_id": null,
+  "read": false,
+  "read_at": null,
+  "created_at": "2024-01-17T10:30:00Z"
 }
 ```
 
