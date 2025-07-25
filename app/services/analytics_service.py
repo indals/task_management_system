@@ -14,7 +14,7 @@ class AnalyticsService:
         total_tasks = Task.query.filter_by(assigned_to_id=user.id).count()
         completed_tasks = Task.query.filter_by(
             assigned_to_id=user.id,
-            status=TaskStatus.COMPLETED.value
+            status=TaskStatus.DONE.value
         ).count()
 
         return {
@@ -77,10 +77,15 @@ class AnalyticsService:
         # Get completed tasks
         completed_tasks = Task.query.filter(
             Task.assigned_to_id == user_id,
-            Task.status == TaskStatus.COMPLETED,
+            Task.status == TaskStatus.DONE,
             Task.created_at >= start_date
         ).count()
 
+        # pending_tasks = Task.query.filter(
+        #     Task.assigned_to_id == user_id,
+        #     Task.status != TaskStatus.PENDING,
+        #     Task.created_at >= start_date
+        # ).count()
         # Calculate completion rate
         completion_rate = (completed_tasks / total_tasks) if total_tasks > 0 else 0
 

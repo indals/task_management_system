@@ -23,11 +23,6 @@ def register_routes(app: Flask):
     app.register_blueprint(enum_bp)
     print("✅ Core routes registered successfully!")
     
-    # New IT-specific routes
-    app.register_blueprint(sprint_bp)
-    app.register_blueprint(enum_bp)
-    
-    print("✅ All routes registered successfully!")
     
     # Print registered routes for debugging
     print("\n📋 Registered API Routes:")
