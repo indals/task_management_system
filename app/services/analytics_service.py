@@ -92,3 +92,30 @@ class AnalyticsService:
             'start_date': start_date.isoformat(),
             'end_date': now.isoformat()
         }
+    @staticmethod
+    def get_task_distribution_by_status():
+        """Returns distribution of tasks by their status (e.g., Completed, Pending, etc.)."""
+        from sqlalchemy import func
+
+        distribution = (
+            Task.query
+            .with_entities(Task.status, func.count(Task.id))
+            .group_by(Task.status)
+            .all()
+        )
+
+        return {status.value if hasattr(status, 'value') else status: count for status, count in distribution}
+
+    @staticmethod
+    def get_task_distribution_by_priority():
+        """Returns distribution of tasks by their priority (e.g., High, Medium, Low)."""
+        from sqlalchemy import func
+
+        distribution = (
+            Task.query
+            .with_entities(Task.priority, func.count(Task.id))
+            .group_by(Task.priority)
+            .all()
+        )
+
+        return {priority.value if hasattr(priority, 'value') else priority: count for priority, count in distribution}

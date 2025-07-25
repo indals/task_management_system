@@ -1,4 +1,15 @@
+<<<<<<< Updated upstream
 # IT Task Management System - Backend API
+=======
+# Migrations folder remove करें
+rm -rf migrations/
+
+# Fresh try करें
+flask db init
+flask db migrate -m "Initial migration"
+flask db upgrade
+
+>>>>>>> Stashed changes
 
 A comprehensive Flask-based REST API for managing tasks, projects, and sprints in IT environments. This system provides advanced features for agile project management, time tracking, team collaboration, and analytics.
 
