@@ -34,7 +34,9 @@ class User(db.Model):
 
     # Task relationships
     created_tasks = db.relationship('Task', foreign_keys='Task.created_by_id', back_populates='creator', cascade='all, delete-orphan')
+    # assigned_tasks = db.relationship('Task', foreign_keys='Task.assigned_to_id', back_populates='assignee')
     assigned_tasks = db.relationship('Task', foreign_keys='Task.assigned_to_id', back_populates='assignee')
+
     
     # Project relationships
     owned_projects = db.relationship('Project', back_populates='owner', cascade='all, delete-orphan')

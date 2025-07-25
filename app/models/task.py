@@ -34,6 +34,8 @@ class Task(db.Model):
     labels = db.Column(db.Text)  # JSON string of labels
     acceptance_criteria = db.Column(db.Text)
     
+    
+
     # Dependencies
     parent_task_id = db.Column(db.Integer, db.ForeignKey('task.id', ondelete='SET NULL'), nullable=True)
     
@@ -42,6 +44,7 @@ class Task(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
+    # assignee = db.relationship('User', foreign_keys=[assigned_to_id], back_populates='assigned_tasks')
     assignee = db.relationship('User', foreign_keys=[assigned_to_id], back_populates='assigned_tasks')
     creator = db.relationship('User', foreign_keys=[created_by_id], back_populates='created_tasks')
     project = db.relationship('Project', back_populates='tasks')

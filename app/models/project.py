@@ -1,6 +1,8 @@
 # app/models/project.py
 from app import db
 from datetime import datetime
+
+from app.models.project_member import ProjectMember
 from .enums import ProjectStatus
 
 class Project(db.Model):
