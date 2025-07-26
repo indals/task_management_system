@@ -1,12 +1,14 @@
-#notification_routes.py
+# app/routes/notification_routes.py
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.notification_service import NotificationService
+from app.utils.response import (
+    success_response, error_response, created_response, 
+    not_found_response, validation_error_response, server_error_response
+)
 
 notification_bp = Blueprint('notification', __name__, url_prefix='/api/notifications')
 
-
-# Add this method to app/routes/notification_routes.py
 
 @notification_bp.route('/summary', methods=['GET'])
 @jwt_required()
@@ -15,10 +17,16 @@ def get_notification_summary():
     try:
         user_id = get_jwt_identity()
         result = NotificationService.get_notification_summary(user_id)
-        return jsonify(result), 200
+        
+        if 'error' in result:
+            return error_response(result['error'])
+        
+        return success_response("Notification summary retrieved successfully", result)
+        
     except Exception as e:
-        return jsonify({'error': f'Error fetching notification summary: {str(e)}'}), 500
+        return server_error_response(f'Error fetching notification summary: {str(e)}')
     
+
 @notification_bp.route('', methods=['GET'])
 @jwt_required()
 def get_notifications():
@@ -26,7 +34,9 @@ def get_notifications():
     unread_only = request.args.get('unread_only', 'false').lower() == 'true'
 
     result = NotificationService.get_user_notifications(user_id, unread_only)
-    return jsonify(result), 200
+    
+    message = "Unread notifications retrieved successfully" if unread_only else "Notifications retrieved successfully"
+    return success_response(message, result)
 
 
 @notification_bp.route('/<int:notification_id>/read', methods=['POST'])
@@ -36,9 +46,9 @@ def mark_as_read(notification_id):
     result = NotificationService.mark_as_read(notification_id, user_id)
 
     if 'error' in result:
-        return jsonify(result), 404
+        return not_found_response(result['error'])
 
-    return jsonify(result), 200
+    return success_response("Notification marked as read", result)
 
 
 @notification_bp.route('/read-all', methods=['POST'])
@@ -46,7 +56,7 @@ def mark_as_read(notification_id):
 def mark_all_as_read():
     user_id = get_jwt_identity()  # Get authenticated user ID
     result = NotificationService.mark_all_notifications_as_read(user_id)
-    return jsonify(result), 200
+    return success_response("All notifications marked as read", result)
 
 
 @notification_bp.route('/<int:notification_id>', methods=['DELETE'])
@@ -56,6 +66,6 @@ def delete(notification_id):
     result = NotificationService.delete_notification(notification_id, user_id)
 
     if 'error' in result:
-        return jsonify(result), 404
+        return not_found_response(result['error'])
 
-    return jsonify({'message': 'Notification deleted successfully'}), 200
+    return success_response("Notification deleted successfully")

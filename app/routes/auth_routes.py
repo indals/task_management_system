@@ -1,9 +1,14 @@
+# app/routes/auth_routes.py
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.auth_service import AuthService
+from app.utils.response import (
+    success_response, error_response, created_response, 
+    not_found_response, validation_error_response, server_error_response,
+    unauthorized_response
+)
 
 auth_bp = Blueprint('auth_bp', __name__, url_prefix='/api/auth')
-
 
 
 @auth_bp.route('/register', methods=['POST'])
@@ -16,14 +21,14 @@ def register():
     role = data.get("role", "EMPLOYEE")  # Default role is "user"
 
     if not username or not email or not password:
-        return jsonify({'error': 'Missing required fields'}), 400
+        return validation_error_response('Missing required fields')
 
     result = AuthService.register_user(username, email, password, role)
 
     if 'error' in result:
-        return jsonify(result), 400
+        return error_response(result['error'])
 
-    return jsonify(result), 201
+    return created_response("User registered successfully", result)
 
 
 @auth_bp.route('/login', methods=['POST'])
@@ -34,22 +39,22 @@ def login():
     password = data.get('password')
 
     if not email or not password:
-        return jsonify({'error': 'Missing email or password'}), 400
+        return validation_error_response('Missing email or password')
 
     # Call the login_user method from AuthService
     result = AuthService.login_user(email, password)
 
     if not result:
-        return jsonify({'error': 'Invalid credentials'}), 401
+        return unauthorized_response('Invalid credentials')
 
-    return jsonify(result), 200
+    return success_response("Login successful", result)
 
 
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required()
 def me():
     user = AuthService.validate_token()
-    return jsonify(user), 200
+    return success_response("User profile retrieved successfully", user)
 
 
 @auth_bp.route('/profile', methods=['PUT'])
@@ -65,13 +70,13 @@ def update_profile():
 
     # If any required fields are missing, return an error
     if not name and not email and not password:
-        return jsonify({'error': 'No fields to update'}), 400
+        return validation_error_response('No fields to update')
 
     result = AuthService.update_profile(user_id, data)
 
     if result:
-        return jsonify(result), 200
-    return jsonify({'error': 'Failed to update profile'}), 400
+        return success_response("Profile updated successfully", result)
+    return error_response('Failed to update profile')
 
 
 @auth_bp.route('/change-password', methods=['POST'])
@@ -84,18 +89,19 @@ def update_password():
     new_password = data.get('new_password')
 
     if not current_password or not new_password:
-        return jsonify({'error': 'Missing required fields'}), 400
+        return validation_error_response('Missing required fields')
 
     result = AuthService.change_password(user_id, new_password)
 
     if 'error' in result:
-        return jsonify(result), 400
+        return error_response(result['error'])
 
-    return jsonify(result), 200
+    return success_response("Password changed successfully", result)
+
 
 @auth_bp.route('/ping', methods=['GET'])
 def test():
-    return jsonify({"message": "Auth API is working!"}), 200
+    return success_response("Auth API is working!")
 
 
 @auth_bp.route('/users', methods=['GET'])
@@ -105,4 +111,4 @@ def get_users():
     Returns a list of all users with only their id and name.
     """
     users = AuthService.get_all_users_ids_and_names()
-    return jsonify(users), 200
+    return success_response("Users retrieved successfully", users)
