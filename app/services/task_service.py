@@ -490,3 +490,58 @@ class TaskService:
                     related_user_id=user_id,
                     project_id=task.project_id
                 )
+
+    @staticmethod
+    def get_user_time_logs(user_id, start_date=None, end_date=None, limit=50):
+        """Get time logs for a user with optional date filtering."""
+        try:
+            from app.models.time_log import TimeLog
+            user = User.query.get_or_404(user_id)
+            
+            # Build query
+            query = TimeLog.query.filter_by(user_id=user_id)
+            
+            # Add date filters if provided
+            if start_date:
+                try:
+                    start = datetime.fromisoformat(start_date).date()
+                    query = query.filter(TimeLog.work_date >= start)
+                except ValueError:
+                    return {'error': 'Invalid start_date format. Use YYYY-MM-DD'}, 400
+                    
+            if end_date:
+                try:
+                    end = datetime.fromisoformat(end_date).date()
+                    query = query.filter(TimeLog.work_date <= end)
+                except ValueError:
+                    return {'error': 'Invalid end_date format. Use YYYY-MM-DD'}, 400
+            
+            # Order by date (most recent first) and limit
+            time_logs = query.order_by(TimeLog.work_date.desc(), TimeLog.logged_at.desc()).limit(limit).all()
+            
+            # Calculate totals
+            total_hours = sum(log.hours for log in time_logs)
+            
+            # Group by date for daily breakdown
+            daily_breakdown = {}
+            for log in time_logs:
+                date_str = log.work_date.isoformat()
+                if date_str not in daily_breakdown:
+                    daily_breakdown[date_str] = {
+                        'date': date_str,
+                        'total_hours': 0,
+                        'logs': []
+                    }
+                daily_breakdown[date_str]['total_hours'] += log.hours
+                daily_breakdown[date_str]['logs'].append(log.to_dict())
+            
+            return {
+                'time_logs': [log.to_dict() for log in time_logs],
+                'total_hours': total_hours,
+                'total_entries': len(time_logs),
+                'daily_breakdown': list(daily_breakdown.values()),
+                'user': user.to_dict()
+            }, 200
+
+        except Exception as e:
+            return {'error': f'Error fetching user time logs: {str(e)}'}, 500

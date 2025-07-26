@@ -4,6 +4,47 @@ from app.models.task import Task
 from app import db
 
 class NotificationService:
+
+
+    # Add this method to app/services/notification_service.py
+
+    @staticmethod
+    def get_notification_summary(user_id):
+        """Get notification summary with counts and recent notifications."""
+        try:
+            # Get total unread count
+            unread_count = Notification.query.filter_by(user_id=user_id, read=False).count()
+            
+            # Get recent notifications (last 5)
+            recent_notifications = Notification.query.filter_by(user_id=user_id)\
+                .order_by(Notification.created_at.desc())\
+                .limit(5)\
+                .all()
+            
+            # Get count by notification type
+            from sqlalchemy import func
+            type_counts = db.session.query(
+                Notification.type, 
+                func.count(Notification.id)
+            ).filter(
+                Notification.user_id == user_id,
+                Notification.read == False
+            ).group_by(Notification.type).all()
+            
+            type_summary = {}
+            for notification_type, count in type_counts:
+                type_summary[notification_type.value] = count
+            
+            return {
+                'unread_count': unread_count,
+                'recent_notifications': [n.to_dict() for n in recent_notifications],
+                'type_summary': type_summary,
+                'total_notifications': Notification.query.filter_by(user_id=user_id).count()
+            }
+            
+        except Exception as e:
+            return {'error': f'Error getting notification summary: {str(e)}'}
+    
     @staticmethod
     def get_user_notifications(user_id, unread_only=False):
         query = Notification.query.filter_by(user_id=user_id)

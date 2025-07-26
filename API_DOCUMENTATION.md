@@ -4,6 +4,7 @@
 This document provides comprehensive API documentation for the Flask-based Task Management System. The API follows RESTful conventions and uses JWT (JSON Web Tokens) for authentication.
 
 **Base URL:** `http://localhost:5000` (development)  
+**Production URL:** `http://65.2.186.248:5000`  
 **API Version:** v1  
 **Authentication:** JWT Bearer Token
 
@@ -11,13 +12,14 @@ This document provides comprehensive API documentation for the Flask-based Task 
 1. [Authentication](#authentication)
 2. [Tasks](#tasks)
 3. [Projects](#projects)
-4. [Comments](#comments)
-5. [Sprints](#sprints)
+4. [Sprints](#sprints)
+5. [Comments](#comments)
 6. [Notifications](#notifications)
 7. [Analytics](#analytics)
-8. [Enums](#enums)
-9. [Error Responses](#error-responses)
-10. [Data Models](#data-models)
+8. [Time Logs](#time-logs)
+9. [Enums](#enums)
+10. [Error Responses](#error-responses)
+11. [Data Models](#data-models)
 
 ---
 
@@ -52,9 +54,17 @@ Content-Type: application/json
     "name": "John Doe",
     "email": "john.doe@example.com",
     "role": "DEVELOPER",
-    "created_at": "2024-01-15T10:30:00Z"
-  },
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    "avatar_url": null,
+    "bio": null,
+    "skills": [],
+    "github_username": null,
+    "linkedin_url": null,
+    "timezone": "UTC",
+    "daily_work_hours": 8.0,
+    "is_active": true,
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:30:00Z"
+  }
 }
 ```
 
@@ -85,13 +95,23 @@ Content-Type: application/json
 **Response Example (200 OK):**
 ```json
 {
-  "message": "Login successful",
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id": 1,
     "name": "John Doe",
     "email": "john.doe@example.com",
-    "role": "DEVELOPER"
+    "role": "DEVELOPER",
+    "avatar_url": null,
+    "bio": null,
+    "skills": [],
+    "github_username": null,
+    "linkedin_url": null,
+    "timezone": "UTC",
+    "daily_work_hours": 8.0,
+    "hourly_rate": null,
+    "is_active": true,
+    "last_login": "2024-01-15T10:30:00Z"
   }
 }
 ```
@@ -122,8 +142,16 @@ Authorization: Bearer <access_token>
   "avatar_url": "https://example.com/avatar.jpg",
   "bio": "Full-stack developer with 5 years experience",
   "skills": ["JavaScript", "Python", "React", "Flask"],
-  "timezone": "UTC",
-  "created_at": "2024-01-15T10:30:00Z"
+  "github_username": "johndoe",
+  "linkedin_url": "https://linkedin.com/in/johndoe",
+  "phone": "+1-555-0123",
+  "timezone": "America/New_York",
+  "daily_work_hours": 8.0,
+  "hourly_rate": 75.0,
+  "is_active": true,
+  "last_login": "2024-01-17T09:30:00Z",
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-01-17T09:30:00Z"
 }
 ```
 
@@ -144,29 +172,22 @@ Content-Type: application/json
 ```json
 {
   "name": "John Smith",
+  "email": "john.smith@example.com",
   "bio": "Senior Full-stack Developer",
   "skills": ["JavaScript", "Python", "React", "Flask", "Docker"],
   "github_username": "johnsmith",
   "linkedin_url": "https://linkedin.com/in/johnsmith",
-  "timezone": "America/New_York"
+  "phone": "+1-555-0123",
+  "timezone": "America/New_York",
+  "daily_work_hours": 8.5,
+  "hourly_rate": 80.0
 }
 ```
 
 **Response Example (200 OK):**
 ```json
 {
-  "message": "Profile updated successfully",
-  "user": {
-    "id": 1,
-    "name": "John Smith",
-    "email": "john.doe@example.com",
-    "bio": "Senior Full-stack Developer",
-    "skills": ["JavaScript", "Python", "React", "Flask", "Docker"],
-    "github_username": "johnsmith",
-    "linkedin_url": "https://linkedin.com/in/johnsmith",
-    "timezone": "America/New_York",
-    "updated_at": "2024-01-15T11:45:00Z"
-  }
+  "message": "Profile updated successfully"
 }
 ```
 
@@ -194,7 +215,11 @@ Content-Type: application/json
 **Response Example (200 OK):**
 ```json
 {
-  "message": "Password changed successfully"
+  "message": "Password changed successfully",
+  "id": 1,
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "role": "DEVELOPER"
 }
 ```
 
@@ -202,7 +227,7 @@ Content-Type: application/json
 
 ### Get All Users
 **Endpoint:** `GET /api/auth/users`  
-**Description:** Get list of all users (for task assignment)  
+**Description:** Get list of all users for task assignment  
 **Authentication:** JWT Bearer Token required  
 
 **Request Headers:**
@@ -212,21 +237,31 @@ Authorization: Bearer <access_token>
 
 **Response Example (200 OK):**
 ```json
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "role": "DEVELOPER"
+  },
+  {
+    "id": 2,
+    "name": "Jane Smith",
+    "role": "PROJECT_MANAGER"
+  }
+]
+```
+
+---
+
+### Test Endpoint
+**Endpoint:** `GET /api/auth/ping`  
+**Description:** Test if authentication API is working  
+**Authentication:** None required  
+
+**Response Example (200 OK):**
+```json
 {
-  "users": [
-    {
-      "id": 1,
-      "name": "John Doe",
-      "email": "john.doe@example.com",
-      "role": "DEVELOPER"
-    },
-    {
-      "id": 2,
-      "name": "Jane Smith",
-      "email": "jane.smith@example.com",
-      "role": "PROJECT_MANAGER"
-    }
-  ]
+  "message": "Auth API is working!"
 }
 ```
 
@@ -236,7 +271,7 @@ Authorization: Bearer <access_token>
 
 ### Create Task
 **Endpoint:** `POST /api/tasks`  
-**Description:** Create a new task  
+**Description:** Create a new task with enhanced features  
 **Authentication:** JWT Bearer Token required  
 
 **Request Headers:**
@@ -252,39 +287,62 @@ Content-Type: application/json
   "description": "Add JWT-based authentication system with login/register functionality",
   "priority": "HIGH",
   "task_type": "FEATURE",
+  "status": "BACKLOG",
   "project_id": 1,
+  "sprint_id": null,
   "assigned_to_id": 2,
   "due_date": "2024-02-01T17:00:00Z",
+  "start_date": "2024-01-15T09:00:00Z",
   "estimated_hours": 16.0,
   "story_points": 8,
+  "estimation_unit": "HOURS",
   "labels": ["backend", "security"],
-  "acceptance_criteria": "User can register, login, and access protected routes"
+  "acceptance_criteria": "User can register, login, and access protected routes",
+  "parent_task_id": null
 }
 ```
 
 **Response Example (201 Created):**
 ```json
 {
-  "message": "Task created successfully",
-  "task": {
+  "id": 1,
+  "title": "Implement user authentication",
+  "description": "Add JWT-based authentication system with login/register functionality",
+  "status": "BACKLOG",
+  "priority": "HIGH",
+  "task_type": "FEATURE",
+  "assigned_to": {
+    "id": 2,
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com",
+    "role": "DEVELOPER"
+  },
+  "created_by": {
     "id": 1,
-    "title": "Implement user authentication",
-    "description": "Add JWT-based authentication system with login/register functionality",
-    "status": "BACKLOG",
-    "priority": "HIGH",
-    "task_type": "FEATURE",
-    "project_id": 1,
-    "assigned_to_id": 2,
-    "created_by_id": 1,
-    "due_date": "2024-02-01T17:00:00Z",
-    "estimated_hours": 16.0,
-    "actual_hours": 0.0,
-    "story_points": 8,
-    "labels": ["backend", "security"],
-    "acceptance_criteria": "User can register, login, and access protected routes",
-    "created_at": "2024-01-15T10:30:00Z",
-    "updated_at": "2024-01-15T10:30:00Z"
-  }
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "role": "PROJECT_MANAGER"
+  },
+  "project": {
+    "id": 1,
+    "name": "Task Management System"
+  },
+  "sprint": null,
+  "due_date": "2024-02-01T17:00:00Z",
+  "start_date": "2024-01-15T09:00:00Z",
+  "completion_date": null,
+  "estimated_hours": 16.0,
+  "actual_hours": 0.0,
+  "story_points": 8,
+  "estimation_unit": "HOURS",
+  "labels": ["backend", "security"],
+  "acceptance_criteria": "User can register, login, and access protected routes",
+  "parent_task_id": null,
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-01-15T10:30:00Z",
+  "comments_count": 0,
+  "attachments_count": 0,
+  "time_logs_count": 0
 }
 ```
 
@@ -292,7 +350,7 @@ Content-Type: application/json
 
 ### Get Tasks
 **Endpoint:** `GET /api/tasks`  
-**Description:** Get tasks with optional filtering  
+**Description:** Get tasks with advanced filtering  
 **Authentication:** JWT Bearer Token required  
 
 **Request Headers:**
@@ -318,38 +376,84 @@ GET /api/tasks?project_id=1&status=IN_PROGRESS&assigned_to_id=2
 
 **Response Example (200 OK):**
 ```json
-{
-  "tasks": [
-    {
+[
+  {
+    "id": 1,
+    "title": "Implement user authentication",
+    "description": "Add JWT-based authentication system",
+    "status": "IN_PROGRESS",
+    "priority": "HIGH",
+    "task_type": "FEATURE",
+    "assigned_to": {
+      "id": 2,
+      "name": "Jane Smith",
+      "email": "jane.smith@example.com",
+      "role": "DEVELOPER"
+    },
+    "created_by": {
       "id": 1,
-      "title": "Implement user authentication",
-      "description": "Add JWT-based authentication system",
-      "status": "IN_PROGRESS",
-      "priority": "HIGH",
-      "task_type": "FEATURE",
-      "project": {
-        "id": 1,
-        "name": "Task Management System"
-      },
-      "assignee": {
-        "id": 2,
-        "name": "Jane Smith",
-        "email": "jane.smith@example.com"
-      },
-      "creator": {
-        "id": 1,
-        "name": "John Doe",
-        "email": "john.doe@example.com"
-      },
-      "due_date": "2024-02-01T17:00:00Z",
-      "estimated_hours": 16.0,
-      "actual_hours": 4.5,
-      "created_at": "2024-01-15T10:30:00Z",
-      "updated_at": "2024-01-16T14:20:00Z"
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "role": "PROJECT_MANAGER"
+    },
+    "project": {
+      "id": 1,
+      "name": "Task Management System"
+    },
+    "sprint": {
+      "id": 2,
+      "name": "Sprint 2 - Authentication"
+    },
+    "due_date": "2024-02-01T17:00:00Z",
+    "start_date": "2024-01-15T09:00:00Z",
+    "completion_date": null,
+    "estimated_hours": 16.0,
+    "actual_hours": 4.5,
+    "story_points": 8,
+    "estimation_unit": "HOURS",
+    "labels": ["backend", "security"],
+    "acceptance_criteria": "User can register, login, and access protected routes",
+    "parent_task_id": null,
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-16T14:20:00Z",
+    "comments_count": 2,
+    "attachments_count": 0,
+    "time_logs_count": 3
+  }
+]
+```
+
+---
+
+### Get Overdue Tasks
+**Endpoint:** `GET /api/tasks/overdue`  
+**Description:** Get overdue tasks for the current user  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response Example (200 OK):**
+```json
+[
+  {
+    "id": 5,
+    "title": "Fix login bug",
+    "status": "IN_PROGRESS",
+    "priority": "HIGH",
+    "due_date": "2024-01-10T17:00:00Z",
+    "assigned_to": {
+      "id": 2,
+      "name": "Jane Smith"
+    },
+    "project": {
+      "id": 1,
+      "name": "Task Management System"
     }
-  ],
-  "total": 1
-}
+  }
+]
 ```
 
 ---
@@ -376,40 +480,55 @@ Authorization: Bearer <access_token>
   "status": "IN_PROGRESS",
   "priority": "HIGH",
   "task_type": "FEATURE",
+  "assigned_to": {
+    "id": 2,
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com",
+    "role": "DEVELOPER"
+  },
+  "created_by": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "role": "PROJECT_MANAGER"
+  },
   "project": {
     "id": 1,
     "name": "Task Management System"
   },
-  "assignee": {
+  "sprint": {
     "id": 2,
-    "name": "Jane Smith",
-    "email": "jane.smith@example.com"
-  },
-  "creator": {
-    "id": 1,
-    "name": "John Doe",
-    "email": "john.doe@example.com"
+    "name": "Sprint 2 - Authentication"
   },
   "due_date": "2024-02-01T17:00:00Z",
+  "start_date": "2024-01-15T09:00:00Z",
+  "completion_date": null,
   "estimated_hours": 16.0,
   "actual_hours": 4.5,
   "story_points": 8,
+  "estimation_unit": "HOURS",
   "labels": ["backend", "security"],
   "acceptance_criteria": "User can register, login, and access protected routes",
+  "parent_task_id": null,
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-01-16T14:20:00Z",
+  "comments_count": 2,
+  "attachments_count": 0,
+  "time_logs_count": 3,
   "comments": [
     {
       "id": 1,
-      "text": "Started working on the authentication endpoints",
+      "comment": "Started working on the authentication endpoints",
+      "user_id": 2,
+      "created_at": "2024-01-16T09:15:00Z",
+      "updated_at": "2024-01-16T09:15:00Z",
       "author": {
         "id": 2,
         "name": "Jane Smith",
         "email": "jane.smith@example.com"
-      },
-      "created_at": "2024-01-16T09:15:00Z"
+      }
     }
-  ],
-  "created_at": "2024-01-15T10:30:00Z",
-  "updated_at": "2024-01-16T14:20:00Z"
+  ]
 }
 ```
 
@@ -436,23 +555,22 @@ Content-Type: application/json
   "status": "IN_PROGRESS",
   "priority": "CRITICAL",
   "actual_hours": 8.0,
-  "completion_date": "2024-01-20T15:30:00Z"
+  "completion_date": "2024-01-20T15:30:00Z",
+  "labels": ["backend", "security", "urgent"]
 }
 ```
 
 **Response Example (200 OK):**
 ```json
 {
-  "message": "Task updated successfully",
-  "task": {
-    "id": 1,
-    "title": "Implement user authentication (Updated)",
-    "status": "IN_PROGRESS",
-    "priority": "CRITICAL",
-    "actual_hours": 8.0,
-    "completion_date": "2024-01-20T15:30:00Z",
-    "updated_at": "2024-01-20T15:30:00Z"
-  }
+  "id": 1,
+  "title": "Implement user authentication (Updated)",
+  "status": "IN_PROGRESS",
+  "priority": "CRITICAL",
+  "actual_hours": 8.0,
+  "completion_date": "2024-01-20T15:30:00Z",
+  "labels": ["backend", "security", "urgent"],
+  "updated_at": "2024-01-20T15:30:00Z"
 }
 ```
 
@@ -474,7 +592,8 @@ Authorization: Bearer <access_token>
 **Response Example (200 OK):**
 ```json
 {
-  "message": "Task deleted successfully"
+  "message": "Task deleted successfully",
+  "task_id": 1
 }
 ```
 
@@ -504,16 +623,13 @@ Content-Type: application/json
 **Response Example (200 OK):**
 ```json
 {
-  "message": "Task assigned successfully",
-  "task": {
-    "id": 1,
-    "title": "Implement user authentication",
-    "assigned_to_id": 3,
-    "assignee": {
-      "id": 3,
-      "name": "Bob Wilson",
-      "email": "bob.wilson@example.com"
-    }
+  "id": 1,
+  "title": "Implement user authentication",
+  "assigned_to": {
+    "id": 3,
+    "name": "Bob Wilson",
+    "email": "bob.wilson@example.com",
+    "role": "SENIOR_DEVELOPER"
   }
 }
 ```
@@ -544,19 +660,13 @@ Content-Type: application/json
 **Response Example (201 Created):**
 ```json
 {
-  "message": "Comment added successfully",
-  "comment": {
+  "id": 2,
+  "text": "I've completed the login endpoint and started working on registration",
+  "author": {
     "id": 2,
-    "text": "I've completed the login endpoint and started working on registration",
-    "task_id": 1,
-    "user_id": 2,
-    "author": {
-      "id": 2,
-      "name": "Jane Smith",
-      "email": "jane.smith@example.com"
-    },
-    "created_at": "2024-01-17T11:20:00Z"
-  }
+    "name": "Jane Smith"
+  },
+  "createdAt": "2024-01-17T11:20:00Z"
 }
 ```
 
@@ -588,16 +698,24 @@ Content-Type: application/json
 **Response Example (201 Created):**
 ```json
 {
-  "message": "Time logged successfully",
-  "time_log": {
+  "id": 1,
+  "task_id": 1,
+  "user_id": 2,
+  "hours": 3.5,
+  "description": "Implemented JWT authentication middleware",
+  "work_date": "2024-01-17",
+  "logged_at": "2024-01-17T16:30:00Z",
+  "updated_at": "2024-01-17T16:30:00Z",
+  "task": {
     "id": 1,
-    "task_id": 1,
-    "user_id": 2,
-    "hours": 3.5,
-    "description": "Implemented JWT authentication middleware",
-    "work_date": "2024-01-17",
-    "created_at": "2024-01-17T16:30:00Z"
-  }
+    "title": "Implement user authentication"
+  },
+  "user": {
+    "id": 2,
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com"
+  },
+  "hours_formatted": "3h 30m"
 }
 ```
 
@@ -618,84 +736,28 @@ Authorization: Bearer <access_token>
 
 **Response Example (200 OK):**
 ```json
-{
-  "task": {
+[
+  {
     "id": 1,
-    "title": "Implement user authentication",
-    "total_logged_hours": 12.5
-  },
-  "time_logs": [
-    {
+    "task_id": 1,
+    "user_id": 2,
+    "hours": 3.5,
+    "description": "Implemented JWT authentication middleware",
+    "work_date": "2024-01-17",
+    "logged_at": "2024-01-17T16:30:00Z",
+    "updated_at": "2024-01-17T16:30:00Z",
+    "task": {
       "id": 1,
-      "user_id": 2,
-      "hours": 3.5,
-      "description": "Implemented JWT authentication middleware",
-      "work_date": "2024-01-17",
-      "user": {
-        "id": 2,
-        "name": "Jane Smith"
-      },
-      "created_at": "2024-01-17T16:30:00Z"
+      "title": "Implement user authentication"
     },
-    {
+    "user": {
       "id": 2,
-      "user_id": 2,
-      "hours": 4.0,
-      "description": "Added user registration endpoint",
-      "work_date": "2024-01-18",
-      "user": {
-        "id": 2,
-        "name": "Jane Smith"
-      },
-      "created_at": "2024-01-18T17:00:00Z"
-    }
-  ],
-  "total_hours": 12.5,
-  "contributors": [
-    {
-      "user_id": 2,
       "name": "Jane Smith",
-      "hours": 12.5
-    }
-  ]
-}
-```
-
----
-
-### Get Overdue Tasks
-**Endpoint:** `GET /api/tasks/overdue`  
-**Description:** Get all overdue tasks for the current user  
-**Authentication:** JWT Bearer Token required  
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-```
-
-**Response Example (200 OK):**
-```json
-{
-  "overdue_tasks": [
-    {
-      "id": 5,
-      "title": "Fix login bug",
-      "status": "IN_PROGRESS",
-      "priority": "HIGH",
-      "due_date": "2024-01-10T17:00:00Z",
-      "days_overdue": 7,
-      "project": {
-        "id": 1,
-        "name": "Task Management System"
-      },
-      "assignee": {
-        "id": 2,
-        "name": "Jane Smith"
-      }
-    }
-  ],
-  "total": 1
-}
+      "email": "jane.smith@example.com"
+    },
+    "hours_formatted": "3h 30m"
+  }
+]
 ```
 
 ---
@@ -718,6 +780,9 @@ Content-Type: application/json
 {
   "name": "E-commerce Platform",
   "description": "Modern e-commerce platform with React frontend and Flask backend",
+  "status": "PLANNING",
+  "repository_url": "https://github.com/company/ecommerce",
+  "documentation_url": "https://docs.company.com/ecommerce",
   "technology_stack": ["React", "Flask", "PostgreSQL", "Redis"],
   "start_date": "2024-02-01T00:00:00Z",
   "end_date": "2024-06-30T23:59:59Z",
@@ -730,383 +795,26 @@ Content-Type: application/json
 **Response Example (201 Created):**
 ```json
 {
-  "message": "Project created successfully",
-  "project": {
-    "id": 2,
-    "name": "E-commerce Platform",
-    "description": "Modern e-commerce platform with React frontend and Flask backend",
-    "status": "PLANNING",
-    "technology_stack": ["React", "Flask", "PostgreSQL", "Redis"],
-    "start_date": "2024-02-01T00:00:00Z",
-    "end_date": "2024-06-30T23:59:59Z",
-    "estimated_hours": 800.0,
-    "client_name": "ABC Corporation",
-    "client_email": "contact@abc-corp.com",
-    "owner_id": 1,
-    "created_at": "2024-01-15T12:00:00Z"
-  }
-}
-```
-
----
-
-### Get All Projects
-**Endpoint:** `GET /api/projects`  
-**Description:** Get all projects  
-**Authentication:** JWT Bearer Token required  
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-```
-
-**Response Example (200 OK):**
-```json
-{
-  "projects": [
-    {
-      "id": 1,
-      "name": "Task Management System",
-      "description": "Internal task management and collaboration tool",
-      "status": "ACTIVE",
-      "technology_stack": ["Flask", "React", "PostgreSQL"],
-      "owner": {
-        "id": 1,
-        "name": "John Doe"
-      },
-      "team_size": 5,
-      "task_count": 23,
-      "created_at": "2024-01-01T00:00:00Z"
-    },
-    {
-      "id": 2,
-      "name": "E-commerce Platform",
-      "description": "Modern e-commerce platform",
-      "status": "PLANNING",
-      "technology_stack": ["React", "Flask", "PostgreSQL", "Redis"],
-      "owner": {
-        "id": 1,
-        "name": "John Doe"
-      },
-      "team_size": 0,
-      "task_count": 0,
-      "created_at": "2024-01-15T12:00:00Z"
-    }
-  ],
-  "total": 2
-}
-```
-
----
-
-### Get Project by ID
-**Endpoint:** `GET /api/projects/{project_id}`  
-**Description:** Get a specific project by ID  
-**Authentication:** JWT Bearer Token required  
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-```
-
-**Path Parameters:**
-- `project_id` (integer, required) - Project ID
-
-**Response Example (200 OK):**
-```json
-{
-  "id": 1,
-  "name": "Task Management System",
-  "description": "Internal task management and collaboration tool",
-  "status": "ACTIVE",
-  "technology_stack": ["Flask", "React", "PostgreSQL"],
-  "repository_url": "https://github.com/company/task-management",
-  "documentation_url": "https://docs.company.com/task-management",
-  "start_date": "2024-01-01T00:00:00Z",
-  "end_date": "2024-12-31T23:59:59Z",
-  "estimated_hours": 2000.0,
+  "id": 2,
+  "name": "E-commerce Platform",
+  "description": "Modern e-commerce platform with React frontend and Flask backend",
+  "status": "PLANNING",
+  "repository_url": "https://github.com/company/ecommerce",
+  "documentation_url": "https://docs.company.com/ecommerce",
+  "technology_stack": ["React", "Flask", "PostgreSQL", "Redis"],
+  "start_date": "2024-02-01T00:00:00Z",
+  "end_date": "2024-06-30T23:59:59Z",
+  "estimated_hours": 800.0,
+  "client_name": "ABC Corporation",
+  "client_email": "contact@abc-corp.com",
   "owner": {
     "id": 1,
     "name": "John Doe",
     "email": "john.doe@example.com"
   },
-  "client_name": "Internal",
-  "team_members": [
-    {
-      "id": 1,
-      "name": "John Doe",
-      "role": "PROJECT_MANAGER",
-      "joined_at": "2024-01-01T00:00:00Z"
-    },
-    {
-      "id": 2,
-      "name": "Jane Smith",
-      "role": "DEVELOPER",
-      "joined_at": "2024-01-02T00:00:00Z"
-    }
-  ],
-  "task_summary": {
-    "total": 23,
-    "completed": 8,
-    "in_progress": 5,
-    "pending": 10
-  },
-  "created_at": "2024-01-01T00:00:00Z",
-  "updated_at": "2024-01-15T10:30:00Z"
-}
-```
-
----
-
-### Update Project
-**Endpoint:** `PATCH /api/projects/{project_id}`  
-**Description:** Update project information  
-**Authentication:** JWT Bearer Token required  
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-Content-Type: application/json
-```
-
-**Path Parameters:**
-- `project_id` (integer, required) - Project ID
-
-**Request Body:**
-```json
-{
-  "status": "ACTIVE",
-  "description": "Updated project description",
-  "estimated_hours": 2200.0
-}
-```
-
-**Response Example (200 OK):**
-```json
-{
-  "message": "Project updated successfully",
-  "project": {
-    "id": 1,
-    "name": "Task Management System",
-    "description": "Updated project description",
-    "status": "ACTIVE",
-    "estimated_hours": 2200.0,
-    "updated_at": "2024-01-17T14:30:00Z"
-  }
-}
-```
-
----
-
-### Delete Project
-**Endpoint:** `DELETE /api/projects/{project_id}`  
-**Description:** Delete a project  
-**Authentication:** JWT Bearer Token required  
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-```
-
-**Path Parameters:**
-- `project_id` (integer, required) - Project ID
-
-**Response Example (200 OK):**
-```json
-{
-  "message": "Project deleted successfully"
-}
-```
-
----
-
-### Get Recent Projects
-**Endpoint:** `GET /api/projects/recent`  
-**Description:** Get recently accessed projects  
-**Authentication:** JWT Bearer Token required  
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-```
-
-**Response Example (200 OK):**
-```json
-{
-  "recent_projects": [
-    {
-      "id": 1,
-      "name": "Task Management System",
-      "status": "ACTIVE",
-      "last_activity": "2024-01-17T14:30:00Z"
-    },
-    {
-      "id": 2,
-      "name": "E-commerce Platform",
-      "status": "PLANNING",
-      "last_activity": "2024-01-16T11:20:00Z"
-    }
-  ]
-}
-```
-
----
-
-## Comments
-
-### Get Task Comments
-**Endpoint:** `GET /api/tasks/{task_id}/comments`  
-**Description:** Get all comments for a specific task  
-**Authentication:** JWT Bearer Token required  
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-```
-
-**Path Parameters:**
-- `task_id` (integer, required) - Task ID
-
-**Response Example (200 OK):**
-```json
-{
-  "comments": [
-    {
-      "id": 1,
-      "text": "Started working on the authentication endpoints",
-      "task_id": 1,
-      "author": {
-        "id": 2,
-        "name": "Jane Smith",
-        "email": "jane.smith@example.com",
-        "avatar_url": "https://example.com/avatar2.jpg"
-      },
-      "created_at": "2024-01-16T09:15:00Z",
-      "updated_at": "2024-01-16T09:15:00Z"
-    },
-    {
-      "id": 2,
-      "text": "I've completed the login endpoint and started working on registration",
-      "task_id": 1,
-      "author": {
-        "id": 2,
-        "name": "Jane Smith",
-        "email": "jane.smith@example.com",
-        "avatar_url": "https://example.com/avatar2.jpg"
-      },
-      "created_at": "2024-01-17T11:20:00Z",
-      "updated_at": "2024-01-17T11:20:00Z"
-    }
-  ],
-  "total": 2
-}
-```
-
----
-
-### Update Comment
-**Endpoint:** `PUT /api/tasks/comments/{comment_id}`  
-**Description:** Update a comment (only by comment author)  
-**Authentication:** JWT Bearer Token required  
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-Content-Type: application/json
-```
-
-**Path Parameters:**
-- `comment_id` (integer, required) - Comment ID
-
-**Request Body:**
-```json
-{
-  "comment": "Updated comment text with more details about the implementation"
-}
-```
-
-**Response Example (200 OK):**
-```json
-{
-  "message": "Comment updated successfully",
-  "comment": {
-    "id": 2,
-    "text": "Updated comment text with more details about the implementation",
-    "updated_at": "2024-01-17T15:45:00Z"
-  }
-}
-```
-
----
-
-### Delete Comment
-**Endpoint:** `DELETE /api/tasks/comments/{comment_id}`  
-**Description:** Delete a comment (only by comment author)  
-**Authentication:** JWT Bearer Token required  
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-```
-
-**Path Parameters:**
-- `comment_id` (integer, required) - Comment ID
-
-**Response Example (200 OK):**
-```json
-{
-  "message": "Comment deleted successfully"
-}
-```
-
----
-
-## Sprints
-
-### Create Sprint
-**Endpoint:** `POST /api/sprints`  
-**Description:** Create a new sprint for agile project management  
-**Authentication:** JWT Bearer Token required  
-
-**Request Headers:**
-```
-Authorization: Bearer <access_token>
-Content-Type: application/json
-```
-
-**Request Body:**
-```json
-{
-  "name": "Sprint 1 - Authentication Module",
-  "description": "Focus on implementing user authentication and security features",
-  "project_id": 1,
-  "start_date": "2024-02-01T09:00:00Z",
-  "end_date": "2024-02-14T17:00:00Z",
-  "goal": "Complete user authentication system with JWT tokens",
-  "capacity_hours": 80.0,
-  "velocity_points": 21
-}
-```
-
-**Response Example (201 Created):**
-```json
-{
-  "message": "Sprint created successfully",
-  "sprint": {
-    "id": 1,
-    "name": "Sprint 1 - Authentication Module",
-    "description": "Focus on implementing user authentication and security features",
-    "status": "PLANNED",
-    "project_id": 1,
-    "start_date": "2024-02-01T09:00:00Z",
-    "end_date": "2024-02-14T17:00:00Z",
-    "goal": "Complete user authentication system with JWT tokens",
-    "capacity_hours": 80.0,
-    "velocity_points": 21,
-    "tasks_count": 0,
-    "created_at": "2024-01-15T12:00:00Z",
-    "updated_at": "2024-01-15T12:00:00Z"
-  }
+  "tasks_count": 0,
+  "created_at": "2024-01-15T12:00:00Z",
+  "updated_at": "2024-01-15T12:00:00Z"
 }
 ```
 
@@ -1150,6 +858,9 @@ GET /api/sprints/1?include_tasks=true
   "goal": "Complete user authentication system with JWT tokens",
   "capacity_hours": 80.0,
   "velocity_points": 21,
+  "tasks_count": 5,
+  "created_at": "2024-01-15T12:00:00Z",
+  "updated_at": "2024-02-01T09:00:00Z",
   "tasks": [
     {
       "id": 1,
@@ -1157,17 +868,12 @@ GET /api/sprints/1?include_tasks=true
       "status": "IN_PROGRESS",
       "priority": "HIGH",
       "story_points": 8,
-      "assignee": {
+      "assigned_to": {
         "id": 2,
         "name": "Jane Smith"
       }
     }
-  ],
-  "tasks_count": 5,
-  "completed_tasks": 2,
-  "remaining_points": 13,
-  "created_at": "2024-01-15T12:00:00Z",
-  "updated_at": "2024-02-01T09:00:00Z"
+  ]
 }
 ```
 
@@ -1193,22 +899,21 @@ Content-Type: application/json
   "name": "Sprint 1 - Authentication & Security Module",
   "description": "Updated description with security focus",
   "goal": "Complete authentication system with enhanced security features",
-  "capacity_hours": 90.0
+  "capacity_hours": 90.0,
+  "status": "ACTIVE"
 }
 ```
 
 **Response Example (200 OK):**
 ```json
 {
-  "message": "Sprint updated successfully",
-  "sprint": {
-    "id": 1,
-    "name": "Sprint 1 - Authentication & Security Module",
-    "description": "Updated description with security focus",
-    "goal": "Complete authentication system with enhanced security features",
-    "capacity_hours": 90.0,
-    "updated_at": "2024-02-02T10:30:00Z"
-  }
+  "id": 1,
+  "name": "Sprint 1 - Authentication & Security Module",
+  "description": "Updated description with security focus",
+  "goal": "Complete authentication system with enhanced security features",
+  "capacity_hours": 90.0,
+  "status": "ACTIVE",
+  "updated_at": "2024-02-02T10:30:00Z"
 }
 ```
 
@@ -1251,31 +956,30 @@ Authorization: Bearer <access_token>
 
 **Response Example (200 OK):**
 ```json
-{
-  "sprints": [
-    {
-      "id": 1,
-      "name": "Sprint 1 - Authentication Module",
-      "status": "COMPLETED",
-      "start_date": "2024-02-01T09:00:00Z",
-      "end_date": "2024-02-14T17:00:00Z",
-      "tasks_count": 5,
-      "completed_tasks": 5,
-      "velocity_points": 21
-    },
-    {
-      "id": 2,
-      "name": "Sprint 2 - Task Management",
-      "status": "ACTIVE",
-      "start_date": "2024-02-15T09:00:00Z",
-      "end_date": "2024-02-28T17:00:00Z",
-      "tasks_count": 7,
-      "completed_tasks": 3,
-      "velocity_points": 28
-    }
-  ],
-  "total": 2
-}
+[
+  {
+    "id": 1,
+    "name": "Sprint 1 - Authentication Module",
+    "status": "COMPLETED",
+    "start_date": "2024-02-01T09:00:00Z",
+    "end_date": "2024-02-14T17:00:00Z",
+    "tasks_count": 5,
+    "velocity_points": 21,
+    "created_at": "2024-01-15T12:00:00Z",
+    "updated_at": "2024-02-14T17:00:00Z"
+  },
+  {
+    "id": 2,
+    "name": "Sprint 2 - Task Management",
+    "status": "ACTIVE",
+    "start_date": "2024-02-15T09:00:00Z",
+    "end_date": "2024-02-28T17:00:00Z",
+    "tasks_count": 7,
+    "velocity_points": 28,
+    "created_at": "2024-02-01T12:00:00Z",
+    "updated_at": "2024-02-15T09:00:00Z"
+  }
+]
 ```
 
 ---
@@ -1296,13 +1000,11 @@ Authorization: Bearer <access_token>
 **Response Example (200 OK):**
 ```json
 {
-  "message": "Sprint started successfully",
-  "sprint": {
-    "id": 1,
-    "name": "Sprint 1 - Authentication Module",
-    "status": "ACTIVE",
-    "started_at": "2024-02-01T09:00:00Z"
-  }
+  "id": 1,
+  "name": "Sprint 1 - Authentication Module",
+  "status": "ACTIVE",
+  "start_date": "2024-02-01T09:00:00Z",
+  "updated_at": "2024-02-01T09:00:00Z"
 }
 ```
 
@@ -1324,15 +1026,12 @@ Authorization: Bearer <access_token>
 **Response Example (200 OK):**
 ```json
 {
-  "message": "Sprint completed successfully",
-  "sprint": {
-    "id": 1,
-    "name": "Sprint 1 - Authentication Module",
-    "status": "COMPLETED",
-    "completed_at": "2024-02-14T17:00:00Z",
-    "velocity_achieved": 21,
-    "completion_rate": 100
-  }
+  "id": 1,
+  "name": "Sprint 1 - Authentication Module",
+  "status": "COMPLETED",
+  "end_date": "2024-02-14T17:00:00Z",
+  "velocity_points": 21,
+  "updated_at": "2024-02-14T17:00:00Z"
 }
 ```
 
@@ -1354,36 +1053,10 @@ Authorization: Bearer <access_token>
 **Response Example (200 OK):**
 ```json
 {
-  "sprint": {
-    "id": 1,
-    "name": "Sprint 1 - Authentication Module",
-    "start_date": "2024-02-01T09:00:00Z",
-    "end_date": "2024-02-14T17:00:00Z",
-    "total_points": 21
-  },
-  "burndown_data": [
-    {
-      "date": "2024-02-01",
-      "remaining_points": 21,
-      "ideal_remaining": 21,
-      "completed_points": 0
-    },
-    {
-      "date": "2024-02-02",
-      "remaining_points": 18,
-      "ideal_remaining": 19.5,
-      "completed_points": 3
-    },
-    {
-      "date": "2024-02-05",
-      "remaining_points": 13,
-      "ideal_remaining": 15.75,
-      "completed_points": 8
-    }
-  ],
-  "completion_rate": 62,
-  "velocity": 8,
-  "days_remaining": 7
+  "total_points": 21,
+  "completed_points": 13,
+  "remaining_points": 8,
+  "completion_percentage": 61.9
 }
 ```
 
@@ -1406,13 +1079,11 @@ Authorization: Bearer <access_token>
 **Response Example (200 OK):**
 ```json
 {
-  "message": "Task added to sprint successfully",
-  "task": {
-    "id": 5,
-    "title": "Implement password reset functionality",
-    "sprint_id": 1,
-    "story_points": 5
-  }
+  "id": 5,
+  "title": "Implement password reset functionality",
+  "sprint_id": 1,
+  "story_points": 5,
+  "status": "TODO"
 }
 ```
 
@@ -1435,7 +1106,117 @@ Authorization: Bearer <access_token>
 **Response Example (200 OK):**
 ```json
 {
-  "message": "Task removed from sprint successfully"
+  "id": 5,
+  "title": "Implement password reset functionality",
+  "sprint_id": null,
+  "status": "BACKLOG"
+}
+```
+
+---
+
+## Comments
+
+### Get Task Comments
+**Endpoint:** `GET /api/tasks/{task_id}/comments`  
+**Description:** Get all comments for a specific task  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `task_id` (integer, required) - Task ID
+
+**Response Example (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "task_id": 1,
+    "user_id": 2,
+    "comment": "Started working on the authentication endpoints",
+    "created_at": "2024-01-16T09:15:00Z",
+    "updated_at": "2024-01-16T09:15:00Z",
+    "user": {
+      "id": 2,
+      "name": "Jane Smith",
+      "email": "jane.smith@example.com",
+      "role": "DEVELOPER",
+      "avatar_url": "https://example.com/avatar2.jpg"
+    }
+  },
+  {
+    "id": 2,
+    "task_id": 1,
+    "user_id": 2,
+    "comment": "I've completed the login endpoint and started working on registration",
+    "created_at": "2024-01-17T11:20:00Z",
+    "updated_at": "2024-01-17T11:20:00Z",
+    "user": {
+      "id": 2,
+      "name": "Jane Smith",
+      "email": "jane.smith@example.com",
+      "role": "DEVELOPER",
+      "avatar_url": "https://example.com/avatar2.jpg"
+    }
+  }
+]
+```
+
+---
+
+### Update Comment
+**Endpoint:** `PUT /api/tasks/comments/{comment_id}`  
+**Description:** Update a comment (only by comment author)  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Path Parameters:**
+- `comment_id` (integer, required) - Comment ID
+
+**Request Body:**
+```json
+{
+  "comment": "Updated comment text with more details about the implementation"
+}
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "id": 2,
+  "comment": "Updated comment text with more details about the implementation",
+  "updated_at": "2024-01-17T15:45:00Z"
+}
+```
+
+---
+
+### Delete Comment
+**Endpoint:** `DELETE /api/tasks/comments/{comment_id}`  
+**Description:** Delete a comment (only by comment author)  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `comment_id` (integer, required) - Comment ID
+
+**Response Example (200 OK):**
+```json
+{
+  "message": "Comment deleted successfully"
 }
 ```
 
@@ -1463,42 +1244,50 @@ GET /api/notifications?unread_only=true
 
 **Response Example (200 OK):**
 ```json
-{
-  "notifications": [
-    {
+[
+  {
+    "id": 1,
+    "user_id": 2,
+    "task_id": 1,
+    "type": "TASK_ASSIGNED",
+    "title": "New Task Assigned",
+    "message": "You have been assigned to task: Implement user authentication",
+    "related_user_id": 3,
+    "project_id": 1,
+    "sprint_id": null,
+    "read": false,
+    "read_at": null,
+    "created_at": "2024-01-17T10:30:00Z",
+    "task": {
       "id": 1,
-      "type": "TASK_ASSIGNED",
-      "title": "New Task Assigned",
-      "message": "You have been assigned to task: Implement user authentication",
-      "task_id": 1,
-      "task": {
-        "id": 1,
-        "title": "Implement user authentication",
-        "priority": "HIGH"
-      },
-      "related_user": {
-        "id": 3,
-        "name": "Bob Wilson",
-        "email": "bob.wilson@example.com"
-      },
-      "project_id": 1,
-      "read": false,
-      "created_at": "2024-01-17T10:30:00Z"
+      "title": "Implement user authentication",
+      "priority": "HIGH"
     },
-    {
-      "id": 2,
-      "type": "COMMENT_ADDED",
-      "title": "New Comment on Task",
-      "message": "Jane Smith commented on: Fix login bug",
-      "task_id": 5,
-      "related_user_id": 2,
-      "read": false,
-      "created_at": "2024-01-17T14:20:00Z"
+    "related_user": {
+      "id": 3,
+      "name": "Bob Wilson",
+      "email": "bob.wilson@example.com"
+    },
+    "project": {
+      "id": 1,
+      "name": "Task Management System"
     }
-  ],
-  "total": 2,
-  "unread_count": 2
-}
+  },
+  {
+    "id": 2,
+    "user_id": 2,
+    "task_id": 5,
+    "type": "COMMENT_ADDED",
+    "title": "New Comment on Task",
+    "message": "Jane Smith commented on: Fix login bug",
+    "related_user_id": 2,
+    "project_id": 1,
+    "sprint_id": null,
+    "read": false,
+    "read_at": null,
+    "created_at": "2024-01-17T14:20:00Z"
+  }
+]
 ```
 
 ---
@@ -1519,12 +1308,9 @@ Authorization: Bearer <access_token>
 **Response Example (200 OK):**
 ```json
 {
-  "message": "Notification marked as read",
-  "notification": {
-    "id": 1,
-    "read": true,
-    "read_at": "2024-01-17T16:45:00Z"
-  }
+  "id": 1,
+  "read": true,
+  "read_at": "2024-01-17T16:45:00Z"
 }
 ```
 
@@ -1543,8 +1329,7 @@ Authorization: Bearer <access_token>
 **Response Example (200 OK):**
 ```json
 {
-  "message": "All notifications marked as read",
-  "updated_count": 5
+  "message": "All notifications marked as read"
 }
 ```
 
@@ -1596,30 +1381,12 @@ GET /api/analytics/task-completion?period=month&user_id=2
 **Response Example (200 OK):**
 ```json
 {
-  "user": {
-    "id": 2,
-    "name": "Jane Smith"
-  },
-  "period": "month",
-  "completion_rate": 85.5,
+  "time_period": "month",
   "total_tasks": 23,
   "completed_tasks": 20,
-  "in_progress_tasks": 2,
-  "overdue_tasks": 1,
-  "average_completion_time": 2.5,
-  "productivity_trend": "increasing",
-  "daily_breakdown": [
-    {
-      "date": "2024-01-01",
-      "completed": 2,
-      "created": 3
-    },
-    {
-      "date": "2024-01-02",
-      "completed": 1,
-      "created": 2
-    }
-  ]
+  "completion_rate": 0.87,
+  "start_date": "2023-12-17T10:30:00Z",
+  "end_date": "2024-01-17T10:30:00Z"
 }
 ```
 
@@ -1641,37 +1408,9 @@ Authorization: Bearer <access_token>
 **Response Example (200 OK):**
 ```json
 {
-  "user": {
-    "id": 2,
-    "name": "Jane Smith",
-    "role": "DEVELOPER"
-  },
-  "performance_metrics": {
-    "total_tasks_completed": 45,
-    "average_task_completion_time": 2.3,
-    "on_time_completion_rate": 92.5,
-    "total_hours_logged": 180.5,
-    "average_daily_hours": 7.2,
-    "efficiency_score": 88.7
-  },
-  "monthly_stats": {
-    "tasks_completed": 12,
-    "hours_worked": 85.5,
-    "projects_contributed": 3,
-    "comments_made": 28
-  },
-  "task_type_breakdown": {
-    "FEATURE": 18,
-    "BUG": 15,
-    "ENHANCEMENT": 8,
-    "REFACTOR": 4
-  },
-  "priority_handling": {
-    "CRITICAL": 3,
-    "HIGH": 12,
-    "MEDIUM": 20,
-    "LOW": 10
-  }
+  "total_tasks": 45,
+  "completed_tasks": 40,
+  "completion_rate": 0.89
 }
 ```
 
@@ -1690,43 +1429,14 @@ Authorization: Bearer <access_token>
 **Response Example (200 OK):**
 ```json
 {
-  "total_tasks": 156,
-  "status_distribution": {
-    "BACKLOG": {
-      "count": 25,
-      "percentage": 16.0
-    },
-    "TODO": {
-      "count": 18,
-      "percentage": 11.5
-    },
-    "IN_PROGRESS": {
-      "count": 32,
-      "percentage": 20.5
-    },
-    "IN_REVIEW": {
-      "count": 12,
-      "percentage": 7.7
-    },
-    "TESTING": {
-      "count": 8,
-      "percentage": 5.1
-    },
-    "DONE": {
-      "count": 55,
-      "percentage": 35.3
-    },
-    "BLOCKED": {
-      "count": 4,
-      "percentage": 2.6
-    },
-    "CANCELLED": {
-      "count": 2,
-      "percentage": 1.3
-    }
-  },
-  "completion_rate": 35.3,
-  "active_tasks": 70
+  "BACKLOG": 25,
+  "TODO": 18,
+  "IN_PROGRESS": 32,
+  "IN_REVIEW": 12,
+  "TESTING": 8,
+  "DONE": 55,
+  "BLOCKED": 4,
+  "CANCELLED": 2
 }
 ```
 
@@ -1745,36 +1455,10 @@ Authorization: Bearer <access_token>
 **Response Example (200 OK):**
 ```json
 {
-  "total_tasks": 156,
-  "priority_distribution": {
-    "CRITICAL": {
-      "count": 8,
-      "percentage": 5.1,
-      "avg_completion_time": 1.2
-    },
-    "HIGH": {
-      "count": 35,
-      "percentage": 22.4,
-      "avg_completion_time": 2.1
-    },
-    "MEDIUM": {
-      "count": 78,
-      "percentage": 50.0,
-      "avg_completion_time": 3.5
-    },
-    "LOW": {
-      "count": 35,
-      "percentage": 22.4,
-      "avg_completion_time": 5.2
-    }
-  },
-  "high_priority_completion_rate": 89.5,
-  "overdue_by_priority": {
-    "CRITICAL": 0,
-    "HIGH": 2,
-    "MEDIUM": 5,
-    "LOW": 8
-  }
+  "CRITICAL": 8,
+  "HIGH": 35,
+  "MEDIUM": 78,
+  "LOW": 35
 }
 ```
 
@@ -2022,6 +1706,46 @@ Authorization: Bearer <access_token>
 
 ---
 
+## Health Check
+
+### Database Health Check
+**Endpoint:** `GET /api/health/db`  
+**Description:** Check database connection status  
+**Authentication:** None required  
+
+**Response Example (200 OK):**
+```json
+{
+  "status": "healthy",
+  "database": "connected"
+}
+```
+
+**Error Response (500 Internal Server Error):**
+```json
+{
+  "status": "unhealthy",
+  "error": "Connection timeout"
+}
+```
+
+---
+
+### General Health Check
+**Endpoint:** `GET /api/health`  
+**Description:** General service health check  
+**Authentication:** None required  
+
+**Response Example (200 OK):**
+```json
+{
+  "status": "healthy",
+  "service": "task-management-api"
+}
+```
+
+---
+
 ## Error Responses
 
 ### Standard Error Format
@@ -2127,6 +1851,27 @@ All error responses follow this format:
 }
 ```
 
+**Schema:**
+- `id` (integer) - Primary key
+- `name` (string, max 100) - User's full name
+- `email` (string, max 120, unique) - User's email address
+- `role` (enum) - User role (see UserRole enum)
+- `avatar_url` (string, max 500, nullable) - Profile picture URL
+- `bio` (text, nullable) - User biography
+- `skills` (JSON array, nullable) - List of technical skills
+- `github_username` (string, max 100, nullable) - GitHub username
+- `linkedin_url` (string, max 500, nullable) - LinkedIn profile URL
+- `phone` (string, max 20, nullable) - Phone number
+- `timezone` (string, max 50, default "UTC") - User timezone
+- `daily_work_hours` (float, default 8.0) - Expected daily work hours
+- `hourly_rate` (float, nullable) - Hourly billing rate
+- `is_active` (boolean, default true) - Account status
+- `last_login` (datetime, nullable) - Last login timestamp
+- `created_at` (datetime) - Account creation timestamp
+- `updated_at` (datetime) - Last update timestamp
+
+---
+
 ### Task Model
 ```json
 {
@@ -2136,11 +1881,24 @@ All error responses follow this format:
   "status": "IN_PROGRESS",
   "priority": "HIGH",
   "task_type": "FEATURE",
-  "project_id": 1,
-  "sprint_id": 2,
-  "assigned_to_id": 2,
-  "created_by_id": 1,
-  "parent_task_id": null,
+  "assigned_to": {
+    "id": 2,
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com"
+  },
+  "created_by": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john.doe@example.com"
+  },
+  "project": {
+    "id": 1,
+    "name": "Task Management System"
+  },
+  "sprint": {
+    "id": 2,
+    "name": "Sprint 2 - Authentication"
+  },
   "due_date": "2024-02-01T17:00:00Z",
   "start_date": "2024-01-15T09:00:00Z",
   "completion_date": null,
@@ -2150,10 +1908,40 @@ All error responses follow this format:
   "estimation_unit": "HOURS",
   "labels": ["backend", "security"],
   "acceptance_criteria": "User can register, login, and access protected routes",
+  "parent_task_id": null,
   "created_at": "2024-01-15T10:30:00Z",
-  "updated_at": "2024-01-16T14:20:00Z"
+  "updated_at": "2024-01-16T14:20:00Z",
+  "comments_count": 2,
+  "attachments_count": 0,
+  "time_logs_count": 3
 }
 ```
+
+**Schema:**
+- `id` (integer) - Primary key
+- `title` (string, max 200) - Task title
+- `description` (text, nullable) - Detailed description
+- `status` (enum) - Task status (see TaskStatus enum)
+- `priority` (enum) - Task priority (see TaskPriority enum)
+- `task_type` (enum) - Task type (see TaskType enum)
+- `assigned_to_id` (integer, nullable) - Assigned user ID
+- `created_by_id` (integer) - Creator user ID
+- `project_id` (integer, nullable) - Associated project ID
+- `sprint_id` (integer, nullable) - Associated sprint ID
+- `due_date` (datetime, nullable) - Due date
+- `start_date` (datetime, nullable) - Start date
+- `completion_date` (datetime, nullable) - Completion date
+- `estimated_hours` (float, nullable) - Estimated hours
+- `actual_hours` (float, default 0.0) - Actual hours spent
+- `story_points` (integer, nullable) - Agile story points
+- `estimation_unit` (enum, default "HOURS") - Unit of estimation
+- `labels` (JSON array, nullable) - Task labels/tags
+- `acceptance_criteria` (text, nullable) - Definition of done
+- `parent_task_id` (integer, nullable) - Parent task for subtasks
+- `created_at` (datetime) - Creation timestamp
+- `updated_at` (datetime) - Last update timestamp
+
+---
 
 ### Project Model
 ```json
@@ -2168,25 +1956,106 @@ All error responses follow this format:
   "start_date": "2024-01-01T00:00:00Z",
   "end_date": "2024-12-31T23:59:59Z",
   "estimated_hours": 2000.0,
-  "owner_id": 1,
+  "owner": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john.doe@example.com"
+  },
   "client_name": "Internal",
   "client_email": "internal@company.com",
+  "tasks_count": 23,
+  "sprints_count": 3,
+  "team_members_count": 5,
   "created_at": "2024-01-01T00:00:00Z",
   "updated_at": "2024-01-15T10:30:00Z"
 }
 ```
 
+**Schema:**
+- `id` (integer) - Primary key
+- `name` (string, max 200) - Project name
+- `description` (text, nullable) - Project description
+- `status` (enum) - Project status (see ProjectStatus enum)
+- `repository_url` (string, max 500, nullable) - Git repository URL
+- `documentation_url` (string, max 500, nullable) - Documentation URL
+- `technology_stack` (JSON array, nullable) - Technologies used
+- `start_date` (datetime, nullable) - Project start date
+- `end_date` (datetime, nullable) - Project end date
+- `estimated_hours` (float, nullable) - Total estimated hours
+- `owner_id` (integer) - Project owner user ID
+- `client_name` (string, max 200, nullable) - Client name
+- `client_email` (string, max 120, nullable) - Client email
+- `created_at` (datetime) - Creation timestamp
+- `updated_at` (datetime) - Last update timestamp
+
+---
+
+### Sprint Model
+```json
+{
+  "id": 1,
+  "name": "Sprint 1 - Authentication Module",
+  "description": "Focus on implementing user authentication and security features",
+  "status": "ACTIVE",
+  "project_id": 1,
+  "project": {
+    "id": 1,
+    "name": "Task Management System"
+  },
+  "start_date": "2024-02-01T09:00:00Z",
+  "end_date": "2024-02-14T17:00:00Z",
+  "goal": "Complete user authentication system with JWT tokens",
+  "capacity_hours": 80.0,
+  "velocity_points": 21,
+  "tasks_count": 5,
+  "created_at": "2024-01-15T12:00:00Z",
+  "updated_at": "2024-02-01T09:00:00Z"
+}
+```
+
+**Schema:**
+- `id` (integer) - Primary key
+- `name` (string, max 200) - Sprint name
+- `description` (text, nullable) - Sprint description
+- `status` (enum) - Sprint status (see SprintStatus enum)
+- `project_id` (integer) - Associated project ID
+- `start_date` (datetime) - Sprint start date
+- `end_date` (datetime) - Sprint end date
+- `goal` (text, nullable) - Sprint goal
+- `capacity_hours` (float, nullable) - Team capacity in hours
+- `velocity_points` (integer, nullable) - Expected velocity points
+- `created_at` (datetime) - Creation timestamp
+- `updated_at` (datetime) - Last update timestamp
+
+---
+
 ### Comment Model
 ```json
 {
   "id": 1,
-  "text": "Started working on the authentication endpoints",
   "task_id": 1,
   "user_id": 2,
+  "comment": "Started working on the authentication endpoints",
   "created_at": "2024-01-16T09:15:00Z",
-  "updated_at": "2024-01-16T09:15:00Z"
+  "updated_at": "2024-01-16T09:15:00Z",
+  "user": {
+    "id": 2,
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com",
+    "role": "DEVELOPER"
+  }
 }
 ```
+
+**Schema:**
+- `id` (integer) - Primary key
+- `task_id` (integer) - Associated task ID
+- `user_id` (integer) - Comment author user ID
+- `comment` (text) - Comment text
+- `created_at` (datetime) - Creation timestamp
+- `updated_at` (datetime) - Last update timestamp
+
+---
 
 ### Time Log Model
 ```json
@@ -2197,27 +2066,32 @@ All error responses follow this format:
   "hours": 3.5,
   "description": "Implemented JWT authentication middleware",
   "work_date": "2024-01-17",
-  "created_at": "2024-01-17T16:30:00Z"
+  "logged_at": "2024-01-17T16:30:00Z",
+  "updated_at": "2024-01-17T16:30:00Z",
+  "task": {
+    "id": 1,
+    "title": "Implement user authentication"
+  },
+  "user": {
+    "id": 2,
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com"
+  },
+  "hours_formatted": "3h 30m"
 }
 ```
 
-### Sprint Model
-```json
-{
-  "id": 1,
-  "name": "Sprint 1 - Authentication Module",
-  "description": "Focus on implementing user authentication and security features",
-  "status": "ACTIVE",
-  "project_id": 1,
-  "start_date": "2024-02-01T09:00:00Z",
-  "end_date": "2024-02-14T17:00:00Z",
-  "goal": "Complete user authentication system with JWT tokens",
-  "capacity_hours": 80.0,
-  "velocity_points": 21,
-  "created_at": "2024-01-15T12:00:00Z",
-  "updated_at": "2024-02-01T09:00:00Z"
-}
-```
+**Schema:**
+- `id` (integer) - Primary key
+- `task_id` (integer) - Associated task ID
+- `user_id` (integer) - User who logged time
+- `hours` (float) - Hours worked
+- `description` (text, nullable) - Work description
+- `work_date` (date) - Date of work
+- `logged_at` (datetime) - When time was logged
+- `updated_at` (datetime) - Last update timestamp
+
+---
 
 ### Notification Model
 ```json
@@ -2236,6 +2110,96 @@ All error responses follow this format:
   "created_at": "2024-01-17T10:30:00Z"
 }
 ```
+
+**Schema:**
+- `id` (integer) - Primary key
+- `user_id` (integer) - Recipient user ID
+- `task_id` (integer, nullable) - Related task ID
+- `type` (enum) - Notification type (see NotificationType enum)
+- `title` (string, max 200) - Notification title
+- `message` (text) - Notification message
+- `related_user_id` (integer, nullable) - User who triggered notification
+- `project_id` (integer, nullable) - Related project ID
+- `sprint_id` (integer, nullable) - Related sprint ID
+- `read` (boolean, default false) - Read status
+- `read_at` (datetime, nullable) - When marked as read
+- `created_at` (datetime) - Creation timestamp
+
+---
+
+### Project Member Model
+```json
+{
+  "id": 1,
+  "project_id": 1,
+  "user_id": 2,
+  "role": "Lead Developer",
+  "can_create_tasks": true,
+  "can_edit_tasks": true,
+  "can_delete_tasks": false,
+  "can_manage_sprints": true,
+  "can_manage_members": false,
+  "joined_at": "2024-01-02T00:00:00Z",
+  "updated_at": "2024-01-02T00:00:00Z",
+  "project": {
+    "id": 1,
+    "name": "Task Management System"
+  },
+  "user": {
+    "id": 2,
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com",
+    "role": "DEVELOPER"
+  }
+}
+```
+
+**Schema:**
+- `id` (integer) - Primary key
+- `project_id` (integer) - Project ID
+- `user_id` (integer) - User ID
+- `role` (string, max 100, nullable) - Role in project
+- `can_create_tasks` (boolean, default true) - Task creation permission
+- `can_edit_tasks` (boolean, default true) - Task editing permission
+- `can_delete_tasks` (boolean, default false) - Task deletion permission
+- `can_manage_sprints` (boolean, default false) - Sprint management permission
+- `can_manage_members` (boolean, default false) - Member management permission
+- `joined_at` (datetime) - When user joined project
+- `updated_at` (datetime) - Last update timestamp
+
+---
+
+### Task Attachment Model
+```json
+{
+  "id": 1,
+  "task_id": 1,
+  "uploaded_by_id": 2,
+  "filename": "auth_diagram_20240117.png",
+  "original_filename": "authentication_flow_diagram.png",
+  "file_path": "/uploads/tasks/1/auth_diagram_20240117.png",
+  "file_size": 245760,
+  "mime_type": "image/png",
+  "uploaded_at": "2024-01-17T14:30:00Z",
+  "uploaded_by": {
+    "id": 2,
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com"
+  },
+  "file_size_formatted": "240.0 KB"
+}
+```
+
+**Schema:**
+- `id` (integer) - Primary key
+- `task_id` (integer) - Associated task ID
+- `uploaded_by_id` (integer) - Uploader user ID
+- `filename` (string, max 255) - Stored filename
+- `original_filename` (string, max 255) - Original filename
+- `file_path` (string, max 500) - File storage path
+- `file_size` (integer, nullable) - File size in bytes
+- `mime_type` (string, max 100, nullable) - MIME type
+- `uploaded_at` (datetime) - Upload timestamp
 
 ---
 
@@ -2302,30 +2266,419 @@ For endpoints that return lists, pagination is supported:
 
 ---
 
-## Webhooks
-The system supports webhooks for real-time notifications:
+## File Upload
+For endpoints that support file uploads:
 
-**Supported Events:**
-- `task.created`
-- `task.updated`
-- `task.assigned`
-- `task.completed`
-- `comment.added`
-- `project.created`
-- `project.updated`
+**Supported File Types:**
+- Images: JPG, JPEG, PNG, GIF, BMP, WEBP, SVG
+- Documents: PDF, DOC, DOCX, TXT, RTF, ODT
+- Code Files: PY, JS, HTML, CSS, JAVA, CPP, C, PHP, RB, GO, RS, TS, JSX, VUE, SQL, JSON, XML, YAML, YML
 
-**Webhook Payload Example:**
-```json
-{
-  "event": "task.created",
-  "timestamp": "2024-01-17T10:30:00Z",
-  "data": {
-    "task": {...},
-    "user": {...}
-  }
+**File Size Limits:**
+- Maximum file size: 16MB
+- Multiple files can be uploaded per task
+
+**Request Format:**
+```
+Content-Type: multipart/form-data
+```
+
+---
+
+## CORS Configuration
+The API supports Cross-Origin Resource Sharing (CORS) with the following configuration:
+- Allowed Origins: `*` (all origins for development)
+- Allowed Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+- Allowed Headers: Content-Type, Authorization
+- Supports Credentials: Yes
+
+---
+
+## Database Configuration
+**Development:**
+- Database: PostgreSQL
+- Host: dev-database.c1qe2o6s6oix.ap-south-1.rds.amazonaws.com
+- Port: 5432
+- Database Name: myapp
+
+**Connection Pooling:**
+- Pool Size: 5 connections
+- Pool Timeout: 20 seconds
+- Pool Recycle: 300 seconds (5 minutes)
+- Pool Pre-ping: Enabled
+
+---
+
+## Environment Variables
+Required environment variables for configuration:
+
+```bash
+# Database
+DATABASE_URL=postgresql://username:password@host:port/database
+SQLALCHEMY_DATABASE_URI=postgresql://username:password@host:port/database
+
+# JWT
+JWT_SECRET_KEY=your-super-secret-jwt-key
+JWT_ACCESS_TOKEN_EXPIRES=3600
+JWT_REFRESH_TOKEN_EXPIRES=2592000
+
+# Flask
+FLASK_ENV=development
+FLASK_DEBUG=True
+SECRET_KEY=your-flask-secret-key
+
+# Redis (optional)
+REDIS_URL=redis://localhost:6379/0
+
+# File Upload
+MAX_CONTENT_LENGTH=16777216
+UPLOAD_FOLDER=uploads/
+```
+
+---
+
+## Deployment
+The API can be deployed using:
+
+### Docker
+```bash
+docker build -t task-management-api .
+docker run -p 5000:5000 task-management-api
+```
+
+### Docker Compose
+```bash
+docker-compose up -d
+```
+
+### Manual Deployment
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run migrations
+flask db upgrade
+
+# Start with Gunicorn
+gunicorn --bind 0.0.0.0:5000 --workers 4 wsgi:app
+```
+
+### GitHub Actions CI/CD
+The repository includes automated deployment to EC2 via GitHub Actions:
+- Triggers on push to master branch
+- Deploys to EC2 instance at 65.2.186.248:5000
+- Includes health checks and rollback capabilities
+
+---
+
+## Security Features
+- **JWT Authentication**: Secure token-based authentication
+- **Password Hashing**: Bcrypt for secure password storage
+- **Input Validation**: Comprehensive data validation on all endpoints
+- **SQL Injection Protection**: SQLAlchemy ORM prevents SQL injection
+- **CORS Configuration**: Secure cross-origin resource sharing
+- **Rate Limiting**: Prevents API abuse
+- **Role-Based Access Control**: Different permissions for different user roles
+
+---
+
+## Monitoring & Health Checks
+- **Health Check Endpoints**: `/api/health` and `/api/health/db`
+- **Database Connection Monitoring**: Automatic connection validation
+- **Error Logging**: Comprehensive error logging and tracking
+- **Performance Monitoring**: Database query optimization and monitoring
+
+---
+
+## Testing
+The API includes comprehensive test coverage:
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=app
+
+# Run specific test file
+pytest tests/test_tasks.py
+```
+
+**Test Categories:**
+- Unit tests for models and services
+- Integration tests for API endpoints
+- Authentication and authorization tests
+- Database transaction tests
+
+---
+
+## API Versioning
+Current API version: **v1**
+
+Future versions will be accessible via:
+- URL versioning: `/api/v2/tasks`
+- Header versioning: `Accept: application/vnd.api+json;version=2`
+
+---
+
+## Support & Documentation
+- **API Documentation**: This document
+- **Interactive API Explorer**: Available at `/api/docs` (when running)
+- **GitHub Repository**: Complete source code and examples
+- **Issue Tracking**: GitHub Issues for bug reports and feature requests
+
+---
+
+## Changelog
+
+### Version 2.0.0 (Current)
+- Enhanced IT task management system
+- Added sprint management functionality
+- Implemented comprehensive time tracking
+- Enhanced user roles and permissions
+- Added project team management
+- Improved analytics and reporting
+- Added file attachment support
+- Enhanced notification system
+
+### Version 1.0.0
+- Initial release
+- Basic task management
+- User authentication
+- Simple project support
+- Basic CRUD operations
+
+---
+
+This documentation covers all available endpoints, request/response formats, authentication requirements, and detailed schema information for the Task Management System API. For additional support or questions, please refer to the GitHub repository or contact the development team.
+  "sprints_count": 0,
+  "team_members_count": 0,
+  "created_at": "2024-01-15T12:00:00Z",
+  "updated_at": "2024-01-15T12:00:00Z"
 }
 ```
 
 ---
 
-This documentation covers all the main endpoints and features of your Flask Task Management System API. Each endpoint includes detailed request/response examples, authentication requirements, and error handling information.
+### Get All Projects
+**Endpoint:** `GET /api/projects`  
+**Description:** Get all projects  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response Example (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "name": "Task Management System",
+    "description": "Internal task management and collaboration tool",
+    "status": "ACTIVE",
+    "repository_url": "https://github.com/company/task-management",
+    "documentation_url": "https://docs.company.com/task-management",
+    "technology_stack": ["Flask", "React", "PostgreSQL"],
+    "start_date": "2024-01-01T00:00:00Z",
+    "end_date": "2024-12-31T23:59:59Z",
+    "estimated_hours": 2000.0,
+    "client_name": "Internal",
+    "client_email": "internal@company.com",
+    "owner": {
+      "id": 1,
+      "name": "John Doe"
+    },
+    "tasks_count": 23,
+    "sprints_count": 3,
+    "team_members_count": 5,
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-15T10:30:00Z"
+  }
+]
+```
+
+---
+
+### Get Project by ID
+**Endpoint:** `GET /api/projects/{project_id}`  
+**Description:** Get a specific project by ID  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `project_id` (integer, required) - Project ID
+
+**Response Example (200 OK):**
+```json
+{
+  "id": 1,
+  "name": "Task Management System",
+  "description": "Internal task management and collaboration tool",
+  "status": "ACTIVE",
+  "repository_url": "https://github.com/company/task-management",
+  "documentation_url": "https://docs.company.com/task-management",
+  "technology_stack": ["Flask", "React", "PostgreSQL"],
+  "start_date": "2024-01-01T00:00:00Z",
+  "end_date": "2024-12-31T23:59:59Z",
+  "estimated_hours": 2000.0,
+  "client_name": "Internal",
+  "client_email": "internal@company.com",
+  "owner": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john.doe@example.com"
+  },
+  "tasks_count": 23,
+  "sprints_count": 3,
+  "team_members_count": 5,
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-15T10:30:00Z"
+}
+```
+
+---
+
+### Update Project
+**Endpoint:** `PATCH /api/projects/{project_id}`  
+**Description:** Update project information  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Path Parameters:**
+- `project_id` (integer, required) - Project ID
+
+**Request Body:**
+```json
+{
+  "name": "Updated Project Name",
+  "status": "ACTIVE",
+  "description": "Updated project description",
+  "estimated_hours": 2200.0
+}
+```
+
+**Response Example (200 OK):**
+```json
+{
+  "id": 1,
+  "name": "Updated Project Name",
+  "description": "Updated project description",
+  "status": "ACTIVE",
+  "estimated_hours": 2200.0,
+  "updated_at": "2024-01-17T14:30:00Z"
+}
+```
+
+---
+
+### Delete Project
+**Endpoint:** `DELETE /api/projects/{project_id}`  
+**Description:** Delete a project  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Path Parameters:**
+- `project_id` (integer, required) - Project ID
+
+**Response Example (200 OK):**
+```json
+{
+  "message": "Project deleted successfully"
+}
+```
+
+---
+
+### Get Recent Projects
+**Endpoint:** `GET /api/projects/recent`  
+**Description:** Get recently accessed projects  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response Example (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "name": "Task Management System",
+    "description": "Internal task management and collaboration tool",
+    "status": "ACTIVE",
+    "owner": {
+      "id": 1,
+      "name": "John Doe"
+    },
+    "tasks_count": 23,
+    "sprints_count": 3,
+    "team_members_count": 5,
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-17T14:30:00Z"
+  }
+]
+```
+
+---
+
+## Sprints
+
+### Create Sprint
+**Endpoint:** `POST /api/sprints`  
+**Description:** Create a new sprint for agile project management  
+**Authentication:** JWT Bearer Token required  
+
+**Request Headers:**
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "name": "Sprint 1 - Authentication Module",
+  "description": "Focus on implementing user authentication and security features",
+  "project_id": 1,
+  "start_date": "2024-02-01T09:00:00Z",
+  "end_date": "2024-02-14T17:00:00Z",
+  "goal": "Complete user authentication system with JWT tokens",
+  "capacity_hours": 80.0,
+  "velocity_points": 21
+}
+```
+
+**Response Example (201 Created):**
+```json
+{
+  "id": 1,
+  "name": "Sprint 1 - Authentication Module",
+  "description": "Focus on implementing user authentication and security features",
+  "status": "PLANNED",
+  "project_id": 1,
+  "project": {
+    "id": 1,
+    "name": "Task Management System"
+  },
+  "start_date": "2024-02-01T09:00:00Z",
+  "end_date": "2024-02-14T17:00:00Z",
+  "goal": "Complete user authentication system with JWT tokens",
+  "capacity_hours": 80.0,
+  "velocity_points": 21,
+  "tasks_count": 0,
