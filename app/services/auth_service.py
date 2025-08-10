@@ -30,17 +30,30 @@ class AuthService:
 
     @staticmethod
     def login_user(email, password):
-        """Authenticates user and returns JWT tokens."""
+        """Authenticates user and returns status, message, and data."""
         user = User.query.filter_by(email=email).first()
-        if not user or not user.check_password(password):  # Ensure User model has check_password
-            return None  # Invalid credentials
 
-        # Return JWT tokens and user info
+        if not user:
+            return {
+                "success": False,
+                "error": "User is not present, please register first"
+            }
+        
+        if not user.check_password(password):
+            return {
+                "success": False,
+                "error": "Invalid credentials"
+            }
+
         return {
-            'access_token': create_access_token(identity=str(user.id)),
-            'refresh_token': create_refresh_token(identity=str(user.id)),
-            'user': user.to_dict()  # Assuming `to_dict` is implemented in the User model
+            "success": True,
+            "data": {
+                "access_token": create_access_token(identity=str(user.id)),
+                "refresh_token": create_refresh_token(identity=str(user.id)),
+                "user": user.to_dict()
+            }
         }
+
 
     @staticmethod
     @jwt_required()
