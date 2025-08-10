@@ -16,7 +16,8 @@ register_routes(app)
 # This is needed for Flask CLI commands like 'flask db init'
 # Flask CLI will use this app instance
 if __name__ == '__main__':
-    app.run(debug=True)
+    # app.run(debug=True)
+    app.run()
 
 
 

@@ -88,7 +88,7 @@ def get_tasks():
         paginated_tasks = tasks[start_index:end_index]
         
         response_data = {
-            'tasks': paginated_tasks,
+            'data': paginated_tasks,
             'total': total,
             'page': page,
             'per_page': per_page,
