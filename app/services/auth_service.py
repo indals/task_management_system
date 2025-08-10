@@ -47,11 +47,9 @@ class AuthService:
 
         return {
             "success": True,
-            "data": {
-                "access_token": create_access_token(identity=str(user.id)),
-                "refresh_token": create_refresh_token(identity=str(user.id)),
-                "user": user.to_dict()
-            }
+            "access_token": create_access_token(identity=str(user.id)),
+            "refresh_token": create_refresh_token(identity=str(user.id)),
+            "user": user.to_dict()
         }
 
 
