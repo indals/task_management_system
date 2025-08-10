@@ -44,8 +44,8 @@ def login():
     # Call the login_user method from AuthService
     result = AuthService.login_user(email, password)
 
-    if not result:
-        return unauthorized_response('Invalid credentials')
+    if not result["success"]:
+        return unauthorized_response(result["error"])
 
     return success_response("Login successful", result)
 
