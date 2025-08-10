@@ -106,7 +106,9 @@ def get_tasks():
 @task_bp.route('/<int:task_id>', methods=['GET'])
 @jwt_required()
 def get_one(task_id):
-    result = TaskService.get_task_by_id(task_id)
+    data = request.get_json()
+    user_id = data.get("user_id")
+    result, status_code = TaskService.get_task_by_id(task_id, user_id)
 
     if 'error' in result:
         return not_found_response(result['error'])
@@ -156,7 +158,6 @@ def delete(task_id):
 def assign(task_id):
     data = request.get_json()
     user_id = data.get('user_id')
-
     if not user_id:
         return validation_error_response('Missing user_id')
 
