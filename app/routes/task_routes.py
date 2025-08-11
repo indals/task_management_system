@@ -21,7 +21,7 @@ def create():
     data = request.get_json()
     user_id = data.get('user_id') # Get authenticated user ID
     assigned_to_id = data.get('assigneeId', '')
-    result = TaskService.create_task(data, user_id, assigned_to_id)
+    result = TaskService.create_task(data, user_id)
 
     if 'error' in result:
         return error_response(result['error'])
