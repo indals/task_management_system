@@ -44,32 +44,32 @@ def get_tasks():
         
         # Build filters from query parameters
         filters = {}
-        
+        # TODO: Implement actual filter logic based on query parameters
         # Project and sprint filters
-        if request.args.get('project_id'):
-            filters['project_id'] = int(request.args.get('project_id'))
-        if request.args.get('sprint_id'):
-            filters['sprint_id'] = int(request.args.get('sprint_id'))
+        # if request.args.get('project_id'):
+        #     filters['project_id'] = int(request.args.get('project_id'))
+        # if request.args.get('sprint_id'):
+        #     filters['sprint_id'] = int(request.args.get('sprint_id'))
             
-        # User filters
-        if request.args.get('assigned_to_id'):
-            filters['assigned_to_id'] = int(request.args.get('assigned_to_id'))
-        if request.args.get('created_by_id'):
-            filters['created_by_id'] = int(request.args.get('created_by_id'))
+        # # User filters
+        # if request.args.get('assigned_to_id'):
+        #     filters['assigned_to_id'] = int(request.args.get('assigned_to_id'))
+        # if request.args.get('created_by_id'):
+        #     filters['created_by_id'] = int(request.args.get('created_by_id'))
             
-        # Status and priority filters
-        if request.args.get('status'):
-            filters['status'] = request.args.get('status')
-        if request.args.get('priority'):
-            filters['priority'] = request.args.get('priority')
-        if request.args.get('task_type'):
-            filters['task_type'] = request.args.get('task_type')
+        # # Status and priority filters
+        # if request.args.get('status'):
+        #     filters['status'] = request.args.get('status')
+        # if request.args.get('priority'):
+        #     filters['priority'] = request.args.get('priority')
+        # if request.args.get('task_type'):
+        #     filters['task_type'] = request.args.get('task_type')
             
-        # Special filters
-        if request.args.get('overdue') == 'true':
-            filters['overdue'] = True
-        if request.args.get('parent_task_id'):
-            filters['parent_task_id'] = int(request.args.get('parent_task_id'))
+        # # Special filters
+        # if request.args.get('overdue') == 'true':
+        #     filters['overdue'] = True
+        # if request.args.get('parent_task_id'):
+        #     filters['parent_task_id'] = int(request.args.get('parent_task_id'))
         
         # Call existing service method (without pagination for now)
         result, status_code = TaskService.get_tasks_by_filters(user_id, filters)
@@ -106,8 +106,10 @@ def get_tasks():
 @task_bp.route('/<int:task_id>', methods=['GET'])
 @jwt_required()
 def get_one(task_id):
-    data = request.get_json()
-    user_id = data.get("user_id")
+    # data = request.get_json()
+    user_id = get_jwt_identity()
+    print(f"Fetching task {task_id} for user {user_id}")
+    # user_id = data.get("user_id")
     result, status_code = TaskService.get_task_by_id(task_id, user_id)
 
     if 'error' in result:
