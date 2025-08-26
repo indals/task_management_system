@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: taskmanager_db
+    environment:
+      POSTGRES_DB: taskmanager
+      POSTGRES_USER: taskmanager
+      POSTGRES_PASSWORD: taskmanager123
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - taskmanager_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskmanager -d taskmanager"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Background task worker (optional - for Celery)
+  worker:
+    build: .
+    container_name: taskmanager_worker
+    command: celery -A app.tasks.celery worker --loglevel=info
+    environment:
+      - FLASK_ENV=docker
+      - DATABASE_URL=postgresql://taskmanager:taskmanager123@db:5432/taskmanager
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    networks:
+      - taskmanager_network
+    restart: unless-stopped
+    profiles:
+      - with-worker
+
+  # Task scheduler (optional - for Celery Beat)
+  scheduler:
+    build: .
+    container_name: taskmanager_scheduler
+    command: celery -A app.tasks.celery beat --loglevel=info
+    environment:
+      - FLASK_ENV=docker
+      - DATABASE_URL=postgresql://taskmanager:taskmanager123@db:5432/taskmanager
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    networks:
+      - taskmanager_network
+    restart: unless-stopped
+    profiles:
+      - with-scheduler
+
+  # pgAdmin for database management (development only)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: taskmanager_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@taskmanager.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+    networks:
+      - taskmanager_network
+    profiles:
+      - with-pgadmin
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  taskmanager_network:
+    driver: bridge
+    name: taskmanager_network

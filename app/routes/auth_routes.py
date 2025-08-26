@@ -34,7 +34,8 @@ def register():
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-
+    user_ip = request.remote_addr
+    print(f"User IP: {user_ip}")
     email = data.get('email')
     password = data.get('password')
 
