@@ -73,7 +73,9 @@ cp .env.example .env
 # Edit .env with your database credentials
 
 # Database initialization
-python scripts/init_db.py
+# python scripts/init_db.py
+python -m scripts.init_db
+
 
 # Start the application
 python app.py

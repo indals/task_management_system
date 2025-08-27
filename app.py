@@ -46,7 +46,7 @@ def main():
     
     # Get host and port from environment variables
     host = os.getenv('FLASK_HOST', '0.0.0.0')
-    port = int(os.getenv('FLASK_PORT', 5001))
+    port = int(os.getenv('FLASK_PORT', 5000))
     debug = os.getenv('FLASK_DEBUG', 'False').lower() in ['true', '1', 'on']
     
     # Run the application
