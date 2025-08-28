@@ -1,6 +1,10 @@
 # app/models/time_log.py
 from app import db
 from datetime import datetime
+from app.utils.logger import get_logger
+
+logger = get_logger('time_log')
+
 
 class TimeLog(db.Model):
     __tablename__ = 'time_logs'
@@ -25,6 +29,7 @@ class TimeLog(db.Model):
     user = db.relationship('User', backref='time_logs')
 
     def to_dict(self):
+        """Return a dictionary representation of the time log."""
         return {
             'id': self.id,
             'task_id': self.task_id,
@@ -40,7 +45,7 @@ class TimeLog(db.Model):
         }
 
     def get_formatted_hours(self):
-        """Return formatted hours (e.g., '2h 30m')."""
+        """Return formatted hours as 'Xh Ym'."""
         if not self.hours:
             return "0h"
         
@@ -55,36 +60,58 @@ class TimeLog(db.Model):
         else:
             return f"{minutes}m"
 
+    def validate_hours(self):
+        """Validate hours to ensure they are within reasonable limits."""
+        try:
+            if self.hours < 0:
+                raise ValueError("Hours cannot be negative")
+            if self.hours > 24:
+                raise ValueError("Hours cannot exceed 24 per day")
+            
+            # Check if total daily hours for user exceed 24
+            daily_total = TimeLog.get_user_daily_hours(self.user_id, self.work_date)
+            if daily_total + self.hours > 24:
+                raise ValueError("Total daily hours would exceed 24 hours")
+        except ValueError as e:
+            logger.error(f"TimeLog validation error for user {self.user_id} on {self.work_date}: {str(e)}")
+            raise
+
     @classmethod
     def get_user_daily_hours(cls, user_id, date):
-        """Get total hours logged by user on a specific date."""
-        logs = cls.query.filter_by(user_id=user_id, work_date=date).all()
-        return sum(log.hours for log in logs)
+        """Get total hours logged by a user on a specific date."""
+        try:
+            logs = cls.query.filter_by(user_id=user_id, work_date=date).all()
+            total = sum(log.hours for log in logs)
+            logger.info(f"User {user_id} logged {total} hours on {date}")
+            return total
+        except Exception as e:
+            logger.error(f"Error fetching daily hours for user {user_id} on {date}: {str(e)}")
+            return 0
 
     @classmethod
     def get_task_total_hours(cls, task_id):
         """Get total hours logged for a specific task."""
-        logs = cls.query.filter_by(task_id=task_id).all()
-        return sum(log.hours for log in logs)
+        try:
+            logs = cls.query.filter_by(task_id=task_id).all()
+            total = sum(log.hours for log in logs)
+            logger.info(f"Task {task_id} total logged hours: {total}")
+            return total
+        except Exception as e:
+            logger.error(f"Error fetching total hours for task {task_id}: {str(e)}")
+            return 0
 
     @classmethod
     def get_user_weekly_hours(cls, user_id, start_date, end_date):
-        """Get total hours logged by user in a date range."""
-        logs = cls.query.filter(
-            cls.user_id == user_id,
-            cls.work_date >= start_date,
-            cls.work_date <= end_date
-        ).all()
-        return sum(log.hours for log in logs)
-
-    def validate_hours(self):
-        """Validate that hours are reasonable (not negative, not too high)."""
-        if self.hours < 0:
-            raise ValueError("Hours cannot be negative")
-        if self.hours > 24:
-            raise ValueError("Hours cannot exceed 24 per day")
-        
-        # Check if total daily hours for user would exceed reasonable limit
-        daily_total = TimeLog.get_user_daily_hours(self.user_id, self.work_date)
-        if daily_total + self.hours > 24:
-            raise ValueError("Total daily hours would exceed 24 hours")
+        """Get total hours logged by a user in a date range."""
+        try:
+            logs = cls.query.filter(
+                cls.user_id == user_id,
+                cls.work_date >= start_date,
+                cls.work_date <= end_date
+            ).all()
+            total = sum(log.hours for log in logs)
+            logger.info(f"User {user_id} total hours from {start_date} to {end_date}: {total}")
+            return total
+        except Exception as e:
+            logger.error(f"Error fetching weekly hours for user {user_id}: {str(e)}")
+            return 0

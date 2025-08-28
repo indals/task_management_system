@@ -37,11 +37,12 @@ def main():
     port = int(os.getenv('FLASK_PORT', 5000))
     debug = os.getenv('FLASK_DEBUG', 'true').lower() == 'true'
     
-    print(f"🚀 Starting Task Management System")
-    print(f"📊 Environment: {env}")
-    print(f"🌐 Server: http://{host}:{port}")
-    print(f"🔧 Debug Mode: {debug}")
-    print("=" * 50)
+    # ✅ USE LOGGER INSTEAD OF PRINT STATEMENTS
+    app.logger.info(f"🌐 Server starting on: http://{host}:{port}")
+    app.logger.info(f"📊 Environment: {env}")
+    app.logger.info(f"🔧 Debug Mode: {debug}")
+    app.logger.info("=" * 50)
+
     
     # Run with Socket.IO support if available
     if hasattr(app, 'socketio'):

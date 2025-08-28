@@ -2,11 +2,18 @@
 from app import db
 from datetime import datetime
 from .enums import TaskStatus, TaskPriority, TaskType, EstimationUnit
+from app.utils.logger import get_logger
+
+logger = get_logger('task')
+
 
 class Task(db.Model):
+    __tablename__ = 'task'
+    
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
+    
     status = db.Column(db.Enum(TaskStatus), nullable=False, default=TaskStatus.BACKLOG)
     priority = db.Column(db.Enum(TaskPriority), nullable=False, default=TaskPriority.MEDIUM)
     task_type = db.Column(db.Enum(TaskType), nullable=False, default=TaskType.FEATURE)
@@ -34,8 +41,6 @@ class Task(db.Model):
     labels = db.Column(db.Text)  # JSON string of labels
     acceptance_criteria = db.Column(db.Text)
     
-    
-
     # Dependencies
     parent_task_id = db.Column(db.Integer, db.ForeignKey('task.id', ondelete='SET NULL'), nullable=True)
     
@@ -44,7 +49,6 @@ class Task(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    # assignee = db.relationship('User', foreign_keys=[assigned_to_id], back_populates='assigned_tasks')
     assignee = db.relationship('User', foreign_keys=[assigned_to_id], back_populates='assigned_tasks')
     creator = db.relationship('User', foreign_keys=[created_by_id], back_populates='created_tasks')
     project = db.relationship('Project', back_populates='tasks')
@@ -105,13 +109,18 @@ class Task(db.Model):
 
     def get_progress_percentage(self):
         """Calculate task progress based on subtasks or time logged."""
-        if self.subtasks:
-            completed_subtasks = sum(1 for subtask in self.subtasks if subtask.status == TaskStatus.DONE)
-            return (completed_subtasks / len(self.subtasks)) * 100 if self.subtasks else 0
-        elif self.estimated_hours and self.actual_hours:
-            return min((self.actual_hours / self.estimated_hours) * 100, 100)
-        else:
-            return 0 if self.status != TaskStatus.DONE else 100
+        try:
+            if self.subtasks:
+                completed_subtasks = sum(1 for subtask in self.subtasks if subtask.status == TaskStatus.DONE)
+                progress = (completed_subtasks / len(self.subtasks)) * 100
+            elif self.estimated_hours and self.actual_hours:
+                progress = min((self.actual_hours / self.estimated_hours) * 100, 100)
+            else:
+                progress = 0 if self.status != TaskStatus.DONE else 100
+            return round(progress, 2)
+        except Exception as e:
+            logger.error(f"Error calculating progress for task {self.id}: {str(e)}")
+            return 0
 
     def is_overdue(self):
         """Check if task is overdue."""
@@ -120,34 +129,31 @@ class Task(db.Model):
         return datetime.utcnow() > self.due_date and self.status not in [TaskStatus.DONE, TaskStatus.CANCELLED]
 
     def get_time_spent(self):
-        """Get total time spent on this task."""
-        return sum(log.hours for log in self.time_logs)
+        """Get total time spent on this task from time logs."""
+        try:
+            return sum(log.hours for log in self.time_logs)
+        except Exception as e:
+            logger.error(f"Error calculating time spent for task {self.id}: {str(e)}")
+            return 0
 
     def add_label(self, label):
         """Add a label to the task."""
         import json
-        labels = []
-        if self.labels:
-            try:
-                labels = json.loads(self.labels)
-            except json.JSONDecodeError:
-                labels = []
-        
-        if label not in labels:
-            labels.append(label)
-            self.labels = json.dumps(labels)
+        try:
+            labels = json.loads(self.labels) if self.labels else []
+            if label not in labels:
+                labels.append(label)
+                self.labels = json.dumps(labels)
+        except Exception as e:
+            logger.error(f"Error adding label '{label}' to task {self.id}: {str(e)}")
 
     def remove_label(self, label):
         """Remove a label from the task."""
         import json
-        labels = []
-        if self.labels:
-            try:
-                labels = json.loads(self.labels)
-            except json.JSONDecodeError:
-                return
-        
-        if label in labels:
-            labels.remove(label)
-            self.labels = json.dumps(labels)
-
+        try:
+            labels = json.loads(self.labels) if self.labels else []
+            if label in labels:
+                labels.remove(label)
+                self.labels = json.dumps(labels)
+        except Exception as e:
+            logger.error(f"Error removing label '{label}' from task {self.id}: {str(e)}")

@@ -20,6 +20,18 @@ class BaseConfig:
     
     # CORS settings
     CORS_HEADERS = 'Content-Type,Authorization'
+
+    # ✅ ADD LOGGING CONFIGURATION
+    # Logging settings
+    LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+    LOG_TO_STDOUT = os.getenv('LOG_TO_STDOUT', 'true').lower() == 'true'
+
+    # ✅ ADD CACHING CONFIGURATION
+    # Redis/Caching settings
+    REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+    CACHE_TYPE = os.getenv('CACHE_TYPE', 'RedisCache')
+    CACHE_REDIS_URL = os.getenv('CACHE_REDIS_URL', 'redis://localhost:6379/0')
+    CACHE_DEFAULT_TIMEOUT = int(os.getenv('CACHE_DEFAULT_TIMEOUT', 300))  # 5 minutes
     
     @classmethod
     def init_app(cls, app):

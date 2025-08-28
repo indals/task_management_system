@@ -2,7 +2,6 @@
 from app import db
 from datetime import datetime
 from .enums import NotificationType
-# from app.utils.socket_utils import broadcast_notification
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -83,13 +82,6 @@ class Notification(db.Model):
         )
         db.session.add(notification)
         db.session.commit()
-
-        try:
-            from app.utils.socket_utils import broadcast_notification
-            broadcast_notification(user_id, notification.to_dict())
-        except Exception as e:
-            print(f"⚠️ Socket broadcast failed: {e}")
-
         return notification
 
     @classmethod

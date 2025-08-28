@@ -22,10 +22,25 @@ def create_app(config_class):
     app.config.from_object(config_class)
     config_class.init_app(app)
     
+    # ✅ SETUP LOGGING FIRST (before anything else)
+    from app.utils.logger import setup_logging
+    setup_logging(app)
+    app.logger.info("🚀 Starting Task Management System")
+
+
     # Initialize extensions
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
+    app.logger.info("✅ Database extensions initialized")
+
+    # ✅ ADD CACHE INITIALIZATION
+    # Initialize caching
+    from app.utils.cache_utils import init_cache
+    cache = init_cache(app)
+    app.cache = cache
+    app.logger.info("✅ Cache extension initialized")
+    # print(f"✅ Cache initialized: {app.config.get('CACHE_TYPE')}")
     
     # Configure CORS
     CORS(app, resources={
@@ -41,18 +56,20 @@ def create_app(config_class):
     from app.utils.socket_utils import init_socketio
     socketio = init_socketio(app)
     app.socketio = socketio
-    
+    app.logger.info("✅ Socket.IO initialized")
     # Import and register models
     from app import models
     
     # Register blueprints
     from app.routes import register_blueprints
     register_blueprints(app)
-    print("\n🔍 Registered Routes:")
+    app.logger.info("✅ Blueprints registered")
+    # print("\n🔍 Registered Routes:")
     for rule in app.url_map.iter_rules():
         if rule.endpoint != 'static':
             methods = ', '.join(sorted(rule.methods - {'HEAD', 'OPTIONS'}))
-            print(f"  {methods:15} {rule.rule}")
+            app.logger.debug(f"  {methods:15} {rule.rule}")
+            # print(f"  {methods:15} {rule.rule}")
     print()
     
     
@@ -66,18 +83,20 @@ def register_basic_error_handlers(app):
     
     @app.errorhandler(404)
     def not_found(error):
+        app.logger.warning(f"404 Error: {error}")
         return {'error': 'Resource not found'}, 404
     
     @app.errorhandler(500)
     def internal_error(error):
         db.session.rollback()
+        app.logger.error(f"500 Error: {error}", exc_info=True)
         return {'error': 'Internal server error'}, 500
     
     @app.errorhandler(Exception)
     def handle_exception(e):
         """Handle unexpected exceptions"""
         db.session.rollback()
-        print(f"❌ Unhandled exception: {e}")
+        app.logger.error(f"Unhandled exception: {e}", exc_info=True)
         if app.config.get('DEBUG'):
             raise e  # Re-raise in debug mode
         return {'error': 'An unexpected error occurred'}, 500
