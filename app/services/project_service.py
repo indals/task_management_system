@@ -1,6 +1,8 @@
 from app.models.project import Project
 from app.models.user import User
 from app import db
+from app.utils.cache_utils import cache, cached_per_user, CacheKeys, invalidate_user_cache, invalidate_project_cache
+
 
 
 class ProjectService:

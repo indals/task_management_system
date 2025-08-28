@@ -7,6 +7,8 @@ from app.models.notification import Notification
 from app.models.enums import SprintStatus, NotificationType, TaskStatus
 from app import db
 from datetime import datetime, timedelta
+from app.utils.cache_utils import cache, cached_per_user, CacheKeys, invalidate_user_cache, invalidate_project_cache
+
 
 class SprintService:
     @staticmethod

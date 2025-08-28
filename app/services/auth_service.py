@@ -8,6 +8,8 @@ from flask_jwt_extended import (
 from app import db
 from werkzeug.security import generate_password_hash
 from app.models.enums import UserRole
+from app.utils.cache_utils import cache, cached_per_user, CacheKeys, invalidate_user_cache, invalidate_project_cache
+
 
 class AuthService:
     @staticmethod

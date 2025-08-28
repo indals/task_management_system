@@ -9,6 +9,8 @@ from app import db
 from app.models.enums import TaskStatus, TaskPriority, TaskType, NotificationType
 from datetime import datetime
 import json
+from app.utils.cache_utils import cache, cached_per_user, CacheKeys, invalidate_user_cache, invalidate_project_cache
+
 
 class TaskService:
     @staticmethod
