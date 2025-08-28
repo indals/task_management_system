@@ -1,51 +1,38 @@
 """
 WSGI Entry Point for Production Deployment
-
-This file is used by WSGI servers like Gunicorn, uWSGI, or mod_wsgi
-to serve the Flask application in production.
-
-Usage:
-    gunicorn --bind 0.0.0.0:8000 wsgi:app
-    uwsgi --http :8000 --module wsgi:app
 """
 
 import os
 import sys
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
+from pathlib import Path
 
 # Add project root to Python path
-project_root = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, project_root)
+project_root = Path(__file__).parent.absolute()
+sys.path.insert(0, str(project_root))
 
-# Import application factory and route registration
+# Load environment variables
+env = os.getenv('FLASK_ENV', 'production')
+env_file = f"env/.env.{env}"
+if os.path.exists(env_file):
+    from dotenv import load_dotenv
+    load_dotenv(env_file)
+
 from app import create_app
-from app.routes import register_all_routes
-
-# Determine environment
-environment = os.getenv('FLASK_ENV', 'production')
+from config import get_config
 
 # Create application instance
-app = create_app(environment)
+config_class = get_config(env)
+app = create_app(config_class)
 
-# Register all routes
-register_all_routes(app)
-
-# Application context setup for production
+# Verify setup
 with app.app_context():
     try:
-        from app import db
-        # Verify database connection
-        db.session.execute(db.text('SELECT 1'))
-        print(f"✅ WSGI: Application initialized successfully in {environment} mode")
+        from app.utils.database import test_connection
+        test_connection()
+        print(f"✅ WSGI: Application ready in {env} mode")
     except Exception as e:
-        print(f"❌ WSGI: Database connection failed: {e}")
-        # Don't raise the exception as it might prevent the app from starting
-        # The health check endpoints will catch database issues
+        print(f"❌ WSGI: Setup error: {e}")
 
-# Export app for WSGI server
 if __name__ == "__main__":
-    # This allows testing the WSGI app directly
+    # For testing WSGI directly
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 8000)))

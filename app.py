@@ -1,75 +1,56 @@
 #!/usr/bin/env python3
 """
-Task Management System - Main Application Entry Point
-
-This is the main entry point for the Flask application.
+Task Management System - Development Entry Point
 Run with: python app.py
 """
 
 import os
 import sys
-from dotenv import load_dotenv
+from pathlib import Path
 
-# Load environment variables from .env file
-load_dotenv()
+# Add project root to Python path
+project_root = Path(__file__).parent.absolute()
+sys.path.insert(0, str(project_root))
 
-# Add the project root to Python path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from app import create_app, db
-from app.routes import register_all_routes
+from app import create_app
+from config import get_config
 
 def main():
-    """Main application function."""
-    # Get environment from environment variable, default to development
+    """Main application function for development."""
+    # Load environment from environment variable or default
     env = os.getenv('FLASK_ENV', 'development')
+    print(f"🔧 Using environment: {env}")
+    # Load appropriate environment file
+    env_file = f"env/.env.{env}"
+    print(f"📂 Loading environment file: {env_file}")
+    if os.path.exists(env_file):
+        from dotenv import load_dotenv
+        load_dotenv(env_file)
+        print(f"✅ Loaded environment from {env_file}")
     
     # Create the Flask application
-    app = create_app(env)
+    config_class = get_config(env)
+    app = create_app(config_class)
     
-    # Register all routes
-    register_all_routes(app)
-    
-    # Print startup information
-    print(f"🚀 Starting Task Management System in {env} mode")
-    print(f"📊 Database: {app.config.get('SQLALCHEMY_DATABASE_URI', 'Not configured')}")
-    print(f"🔒 Debug Mode: {app.config.get('DEBUG', False)}")
-    
-    # Create database tables if they don't exist (for development)
-    if env == 'development':
-        with app.app_context():
-            try:
-                db.create_all()
-                print("✅ Database tables created/verified")
-            except Exception as e:
-                print(f"⚠️  Database initialization warning: {e}")
-    
-    # Get host and port from environment variables
+    # Development server configuration
     host = os.getenv('FLASK_HOST', '0.0.0.0')
     port = int(os.getenv('FLASK_PORT', 5000))
-    debug = os.getenv('FLASK_DEBUG', 'False').lower() in ['true', '1', 'on']
+    debug = os.getenv('FLASK_DEBUG', 'true').lower() == 'true'
     
-    # Run the application
-    # app.run(
-    #     host=host,
-    #     port=port,
-    #     debug=debug,
-    #     threaded=True
-    # )
-
-    print(f"🌐 Server will start on http://{host}:{port}")
-    print(f"🧪 To test sockets, run: python test_socket_client.py")
-    print("=" * 60)
+    print(f"🚀 Starting Task Management System")
+    print(f"📊 Environment: {env}")
+    print(f"🌐 Server: http://{host}:{port}")
+    print(f"🔧 Debug Mode: {debug}")
+    print("=" * 50)
     
-    # Run the application with Socket.IO support
-    # Run the application with Socket.IO support
+    # Run with Socket.IO support if available
     if hasattr(app, 'socketio'):
         app.socketio.run(
-            app, 
-            host=host, 
-            port=port, 
+            app,
+            host=host,
+            port=port,
             debug=debug,
-            allow_unsafe_werkzeug=True  # Allow for development/testing
+            allow_unsafe_werkzeug=True
         )
     else:
         app.run(host=host, port=port, debug=debug, threaded=True)

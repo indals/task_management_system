@@ -1,62 +1,49 @@
 """
-Route Registration Module
-
-This module handles registration of all route blueprints with the Flask app.
+API routes for Task Management System
 """
-
 from flask import Flask
+from app.routes.auth_routes import auth_bp
+from app.routes.task_routes import task_bp
+from app.routes.project_routes import project_bp
+from app.routes.comment_routes import comment_bp
+from app.routes.notification_routes import notification_bp
+from app.routes.analytics_routes import analytics_bp
+from app.routes.sprint_routes import sprint_bp
+from app.routes.enum_routes import enum_bp
 
-def register_all_routes(app: Flask):
-    """
-    Register all route blueprints with the Flask app.
+def register_blueprints(app: Flask):
+    """Register all blueprints with the Flask app"""
+    blueprints = [
+        (auth_bp, '/api/auth'),
+        (task_bp, '/api/tasks'),
+        (project_bp, '/api/projects'),
+        (sprint_bp, '/api/sprints'),
+        (comment_bp, '/api/comments'),
+        (notification_bp, '/api/notifications'),
+        (analytics_bp, '/api/analytics'),
+        (enum_bp, '/api/enums'),
+    ]
     
-    Args:
-        app (Flask): Flask application instance
-    """
+    for blueprint, prefix in blueprints:
+        app.register_blueprint(blueprint, url_prefix=prefix)
     
-    # Import all blueprints
-    try:
-        from app.routes.auth_routes import auth_bp
-        from app.routes.task_routes import task_bp
-        from app.routes.project_routes import project_bp
-        from app.routes.comment_routes import comment_bp
-        from app.routes.notification_routes import notification_bp
-        from app.routes.analytics_routes import analytics_bp
-        from app.routes.sprint_routes import sprint_bp
-        from app.routes.enum_routes import enum_bp
-        
-        # Register core functionality routes
-        blueprints = [
-            (auth_bp, 'Authentication'),
-            (task_bp, 'Tasks'),
-            (project_bp, 'Projects'),
-            (comment_bp, 'Comments'),
-            (notification_bp, 'Notifications'),
-            (analytics_bp, 'Analytics'),
-            (sprint_bp, 'Sprints'),
-            (enum_bp, 'Enums')
-        ]
-        
-        for blueprint, name in blueprints:
-            app.register_blueprint(blueprint)
-            print(f"✅ {name} routes registered")
-        
-        print("✅ All route blueprints registered successfully!")
-        
-    except ImportError as e:
-        print(f"❌ Error importing routes: {e}")
-        raise
+    # Register health check routes
+    register_health_routes(app)
     
-    # Print registered routes for debugging (development only)
-    if app.config.get('DEBUG'):
-        print("\n📋 Registered API Routes:")
-        routes = []
-        for rule in app.url_map.iter_rules():
-            if rule.endpoint != 'static':
-                methods = ', '.join(sorted(rule.methods - {'HEAD', 'OPTIONS'}))
-                routes.append(f"  {methods:15} {rule.rule}")
-        
-        # Sort routes for better readability
-        for route in sorted(routes):
-            print(route)
-        print()
+    print("✅ All blueprints registered successfully")
+
+def register_health_routes(app: Flask):
+    """Register health check endpoints"""
+    
+    @app.route('/health')
+    def health_check():
+        return {'status': 'healthy', 'service': 'task-management-api'}, 200
+    
+    @app.route('/health/db')
+    def db_health_check():
+        from app.utils.database import test_connection
+        try:
+            test_connection()
+            return {'status': 'healthy', 'database': 'connected'}, 200
+        except Exception as e:
+            return {'status': 'unhealthy', 'database': 'disconnected', 'error': str(e)}, 500

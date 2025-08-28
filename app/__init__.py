@@ -1,78 +1,26 @@
 """
 Flask Application Factory
-
-This module contains the application factory and extension initialization.
 """
 
-import os
-import time
-from functools import wraps
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_migrate import Migrate
-from flask_socketio import SocketIO
 
-# Initialize extensions globally
+
+# Initialize extensions
 db = SQLAlchemy()
 jwt = JWTManager()
 migrate = Migrate()
 
-def retry_db_operation(retries=3, delay=1):
-    """Decorator to retry database operations"""
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            for attempt in range(retries):
-                try:
-                    return func(*args, **kwargs)
-                except Exception as e:
-                    if attempt == retries - 1:  # Last attempt
-                        raise e
-                    print(f"Database operation failed (attempt {attempt + 1}/{retries}): {e}")
-                    time.sleep(delay)
-            return None
-        return wrapper
-    return decorator
-
-def test_db_connection(app):
-    """Test if database connection is working"""
-    try:
-        with app.app_context():
-            # Try to execute a simple query
-            db.session.execute(db.text('SELECT 1'))
-            print("✅ Database connection successful!")
-            return True
-    except Exception as e:
-        print(f"❌ Database connection failed: {e}")
-        return False
-
-def create_app(config_name='development'):
-    """
-    Application factory function.
-    
-    Args:
-        config_name (str): Configuration environment ('development', 'production', 'testing')
-        
-    Returns:
-        Flask: Configured Flask application instance
-    """
-    # Create Flask app instance
+def create_app(config_class):
+    """Create Flask application instance"""
     app = Flask(__name__)
     
     # Load configuration
-    from app.config import get_config
-    app.config.from_object(get_config(config_name))
-    
-    # Add database connection pooling configuration
-    app.config.setdefault('SQLALCHEMY_ENGINE_OPTIONS', {
-        'pool_pre_ping': True,      # Validates connections before use
-        'pool_recycle': 300,        # Recycle connections every 5 minutes
-        'pool_timeout': 20,         # Wait 20 seconds for connection
-        'max_overflow': 0,          # Don't create extra connections
-        'pool_size': 5,             # Number of connections to maintain
-    })
+    app.config.from_object(config_class)
+    config_class.init_app(app)
     
     # Initialize extensions
     db.init_app(app)
@@ -86,58 +34,44 @@ def create_app(config_name='development'):
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"]
         }
-    }, supports_credentials=True)
+    })
     
-    # Initialize Socket.IO
+    # Initialize Socket.IO if enabled
+    # NEW - Import from utils instead of services
     from app.utils.socket_utils import init_socketio
     socketio = init_socketio(app)
-    
-    # Store socketio in app context for access in other modules
     app.socketio = socketio
-    print("✅ Socket.IO initialized successfully")
-
-
-    # Import models to ensure they are registered with SQLAlchemy
-    # This is CRITICAL for Flask-Migrate to work properly
-    try:
-        from app import models  # This imports all models via models/__init__.py
-        print("✅ Models imported successfully")
-    except ImportError as e:
-        print(f"⚠️  Warning: Could not import models: {e}")
     
-    # Register error handlers
-    register_error_handlers(app)
+    # Import and register models
+    from app import models
     
-    # Register health check routes
-    register_health_routes(app)
+    # Register blueprints
+    from app.routes import register_blueprints
+    register_blueprints(app)
+    print("\n🔍 Registered Routes:")
+    for rule in app.url_map.iter_rules():
+        if rule.endpoint != 'static':
+            methods = ', '.join(sorted(rule.methods - {'HEAD', 'OPTIONS'}))
+            print(f"  {methods:15} {rule.rule}")
+    print()
     
-    # Test database connection
-    if config_name != 'testing':
-        if not test_db_connection(app):
-            print("⚠️  Warning: Database connection test failed")
     
-    # Add request logging for development
-    if config_name == 'development':
-        @app.before_request
-        def log_request_info():
-            from flask import request
-            print(f"🌐 {request.method} {request.url}")
+    # Register basic error handlers inline (temporary)
+    register_basic_error_handlers(app)
     
-    print(f"✅ Flask app created with {config_name} configuration")
     return app
 
-def register_error_handlers(app):
-    """Register global error handlers"""
-    from app.utils.response import error_response, server_error_response, not_found_response
+def register_basic_error_handlers(app):
+    """Register basic error handlers inline"""
     
     @app.errorhandler(404)
     def not_found(error):
-        return not_found_response("Resource not found")
+        return {'error': 'Resource not found'}, 404
     
     @app.errorhandler(500)
     def internal_error(error):
         db.session.rollback()
-        return server_error_response("Internal server error")
+        return {'error': 'Internal server error'}, 500
     
     @app.errorhandler(Exception)
     def handle_exception(e):
@@ -146,58 +80,4 @@ def register_error_handlers(app):
         print(f"❌ Unhandled exception: {e}")
         if app.config.get('DEBUG'):
             raise e  # Re-raise in debug mode
-        return server_error_response("An unexpected error occurred")
-
-def register_health_routes(app):
-    """Register health check routes"""
-    @app.route('/health')
-    def health_check():
-        """General health check endpoint"""
-        return {
-            'status': 'healthy', 
-            'service': 'task-management-api',
-            'version': '1.0.0'
-        }, 200
-    
-    @app.route('/health/db')
-    def db_health_check():
-        """Database health check endpoint"""
-        try:
-            with app.app_context():
-                db.session.execute(db.text('SELECT 1'))
-                return {
-                    'status': 'healthy', 
-                    'database': 'connected',
-                    'engine': str(db.engine.url).split('@')[0] + '@***'
-                }, 200
-        except Exception as e:
-            return {
-                'status': 'unhealthy', 
-                'database': 'disconnected',
-                'error': str(e)
-            }, 500
-    
-    @app.route('/health/ready')
-    def readiness_check():
-        """Kubernetes readiness probe endpoint"""
-        try:
-            # Check database connection
-            with app.app_context():
-                db.session.execute(db.text('SELECT 1'))
-            
-            return {
-                'status': 'ready',
-                'checks': {
-                    'database': 'ok',
-                    'socket': 'ok' if hasattr(app, 'socketio') else 'not_configured'
-                }
-            }, 200
-        except Exception as e:
-            return {
-                'status': 'not_ready',
-                'checks': {
-                    'database': 'fail',
-                    'socket': 'unknown'
-                },
-                'error': str(e)
-            }, 503
+        return {'error': 'An unexpected error occurred'}, 500
