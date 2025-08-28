@@ -99,7 +99,7 @@ def setup_logging(app):
         logger.handlers.clear()
         logger.addHandler(app_handler)
         logger.setLevel(logging.WARNING)  # Less verbose for third-party
-        logger.propagate = False
+        logger.propagate = True
     
     # Custom application loggers
     setup_custom_loggers(app_handler, error_handler, log_level)
@@ -127,7 +127,7 @@ def setup_custom_loggers(app_handler, error_handler, log_level):
         logger.addHandler(app_handler)
         logger.addHandler(error_handler)
         logger.setLevel(log_level)
-        logger.propagate = False
+        logger.propagate = True
 
 def get_logger(name):
     """Get a logger for a specific module"""
@@ -161,3 +161,24 @@ def log_auth_event(event, user_id=None, email=None, success=True):
     logger = get_logger('auth')
     status = "SUCCESS" if success else "FAILED"
     logger.info(f"🔐 {event} {status} | User: {user_id} | Email: {email}")
+
+
+
+from functools import wraps
+from flask import request, current_app as app
+from .logger import get_logger
+
+def log_request(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        logger = get_logger('api')
+        endpoint = request.path
+        method = request.method
+        user_ip = request.remote_addr
+        data = request.get_json(silent=True)
+        email = data.get('email') if data else None
+
+        logger.info(f"API called | Endpoint: {endpoint} | Method: {method} | Email: {email} | IP: {user_ip}")
+
+        return func(*args, **kwargs)
+    return wrapper

@@ -22,8 +22,10 @@ def cli():
 def run(env):
     """Run the development server"""
     os.environ['FLASK_ENV'] = env
-    from app import main
-    main()
+    
+    # Import main from the root app.py file, not from app module
+    import app as app_module
+    app_module.main()
 
 @cli.command()
 @click.option('--env', default='development', help='Environment to use')
@@ -42,8 +44,8 @@ def init_db(env):
         click.echo('✅ Database initialized successfully')
 
 @cli.command()
-@click.option('--message', '-m', required=True, help='Migration message')
-@cli.option('--env', default='development', help='Environment to use')
+@click.option('--message', prompt='Migration message', help='Description for the migration')
+@click.option('--env', default='development', help='Environment to use')
 def migrate(message, env):
     """Create a new migration"""
     from dotenv import load_dotenv
@@ -54,7 +56,7 @@ def migrate(message, env):
     sys.exit(result.returncode)
 
 @cli.command()
-@cli.option('--env', default='development', help='Environment to use')
+@click.option('--env', default='development', help='Environment to use')
 def upgrade(env):
     """Apply database migrations"""
     from dotenv import load_dotenv
