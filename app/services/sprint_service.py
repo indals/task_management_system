@@ -71,7 +71,7 @@ class SprintService:
             return {'error': f'Error creating sprint: {str(e)}'}, 500
 
     @staticmethod
-    @cached_per_user(CacheKeys.USER_SPRINTS)
+    @cached_per_user(timeout=300, key_prefix=CacheKeys.USER_SPRINTS)
     def get_sprint_by_id(sprint_id, include_tasks=False):
         """Get sprint by ID, optionally include tasks."""
         try:
@@ -157,7 +157,7 @@ class SprintService:
             return {'error': f'Error deleting sprint: {str(e)}'}, 500
 
     @staticmethod
-    @cached_per_user(CacheKeys.USER_SPRINTS)
+    @cached_per_user(timeout=300, key_prefix=CacheKeys.USER_SPRINTS)
     def get_project_sprints(project_id, user_id):
         """Get all sprints for a project with caching."""
         try:

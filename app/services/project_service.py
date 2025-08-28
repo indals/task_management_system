@@ -39,7 +39,7 @@ class ProjectService:
             return {'error': f'Error creating project: {str(e)}'}, 500
 
     @staticmethod
-    @cached_per_user(CacheKeys.USER_PROJECTS)
+    @cached_per_user(timeout=300, key_prefix=CacheKeys.USER_PROJECTS)
     def get_all_projects():
         """Gets all projects."""
         try:
@@ -51,7 +51,7 @@ class ProjectService:
             return {'error': f'Error fetching projects: {str(e)}'}, 500
 
     @staticmethod
-    @cached_per_user(CacheKeys.USER_PROJECTS)
+    @cached_per_user(timeout=300, key_prefix=CacheKeys.USER_PROJECTS)
     def get_project_by_id(project_id):
         """Gets a specific project by ID."""
         try:
@@ -105,7 +105,7 @@ class ProjectService:
             return {'error': f'Error deleting project: {str(e)}'}, 500
 
     @staticmethod
-    @cached_per_user(CacheKeys.USER_PROJECTS)
+    @cached_per_user(timeout=300, key_prefix=CacheKeys.USER_PROJECTS)
     def get_recent_projects():
         """Gets the most recently updated projects."""
         try:

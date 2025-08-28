@@ -43,13 +43,18 @@ def create_app(config_class):
     # print(f"✅ Cache initialized: {app.config.get('CACHE_TYPE')}")
     
     # Configure CORS
-    CORS(app, resources={
-        r"/api/*": {
-            "origins": "*",
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization"]
-        }
-    })
+    # CORS(app, resources={
+    #     r"/api/*": {
+    #         "origins": "*",
+    #         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    #         "allow_headers": ["Content-Type", "Authorization"]
+    #     }
+    # })
+    CORS(
+    app,
+    resources={r"/api/*": {"origins": "http://localhost:4200"}},  # Angular dev server
+    supports_credentials=True
+    )
     
     # Initialize Socket.IO if enabled
     # NEW - Import from utils instead of services

@@ -13,7 +13,7 @@ logger = get_logger('notifications')
 class NotificationService:
 
     @staticmethod
-    @cached_per_user(CacheKeys.USER_NOTIFICATIONS)
+    @cached_per_user(timeout=300, key_prefix=CacheKeys.USER_NOTIFICATIONS)
     def get_notification_summary(user_id):
         """Get notification summary with counts and recent notifications."""
         try:
@@ -49,7 +49,7 @@ class NotificationService:
             return {'error': f'Error getting notification summary: {str(e)}'}, 500
 
     @staticmethod
-    @cached_per_user(CacheKeys.USER_NOTIFICATIONS)
+    @cached_per_user(timeout=300, key_prefix=CacheKeys.USER_NOTIFICATIONS)
     def get_user_notifications(user_id, unread_only=False):
         """Get all notifications for a user, optionally unread only."""
         try:

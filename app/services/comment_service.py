@@ -12,7 +12,7 @@ logger = get_logger('comments')
 class CommentService:
 
     @staticmethod
-    @cached_per_user(CacheKeys.TASK_COMMENTS)
+    @cached_per_user(timeout=300, key_prefix=CacheKeys.TASK_COMMENTS)
     def get_comments_by_task(task_id):
         """Gets all comments for a specific task."""
         try:

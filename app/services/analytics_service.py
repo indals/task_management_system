@@ -14,7 +14,7 @@ logger = get_logger('analytics')
 class AnalyticsService:
 
     @staticmethod
-    @cached_per_user(CacheKeys.USER_ANALYTICS)
+    @cached_per_user(timeout=300, key_prefix=CacheKeys.USER_ANALYTICS)
     def get_user_performance(user_id):
         """Returns task completion statistics for a specific user."""
         try:

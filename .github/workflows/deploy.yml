@@ -2,7 +2,7 @@ name: Deploy Flask to EC2
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master ]   # Trigger when pushing to master branch
 
 jobs:
   deploy:
@@ -13,16 +13,6 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.11
-
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
     - name: Add SSH Key
       run: |
         mkdir -p ~/.ssh
@@ -30,54 +20,44 @@ jobs:
         chmod 600 ~/.ssh/task_managment_system_key_pair.pem
         ssh-keyscan -H 65.2.186.248 >> ~/.ssh/known_hosts
 
-    - name: Create app directory on EC2
-      run: |
-        ssh -i ~/.ssh/task_managment_system_key_pair.pem ubuntu@65.2.186.248 "mkdir -p /home/ubuntu/flask-app"
-
     - name: Copy files to EC2
       run: |
-        scp -i ~/.ssh/task_managment_system_key_pair.pem -r . ubuntu@65.2.186.248:/home/ubuntu/flask-app/
+        rsync -avz -e "ssh -i ~/.ssh/task_managment_system_key_pair.pem" . ubuntu@65.2.186.248:/home/ubuntu/taskmanager
 
-    - name: Install dependencies and run Flask App on EC2
+    - name: Deploy with Docker Compose
       run: |
         ssh -i ~/.ssh/task_managment_system_key_pair.pem ubuntu@65.2.186.248 << 'EOF'
-          cd /home/ubuntu/flask-app
-          
-          # Install Python3 and pip if not available
-          sudo apt update
-          sudo apt install -y python3-pip python3-venv
-          
-          # Create virtual environment
-          python3 -m venv venv
-          source venv/bin/activate
-          
-          # Install requirements
-          pip install -r requirements.txt
-          
-          # Kill any existing Flask processes
-          pkill -f "python3 run.py" || true
-          
-          # Start Flask app in background
-          nohup python3 run.py > app.log 2>&1 &
-          
-          echo "Flask app started successfully"
+          set -e
+          cd /home/ubuntu/taskmanager
+
+          # Install Docker and docker-compose if missing
+          sudo apt-get update -y
+          sudo apt-get install -y docker.io docker-compose
+
+          # Stop old containers (if any) and clean up
+          sudo docker-compose -f docker/docker-compose.yml down || true
+
+          # Build and start new containers
+          sudo docker-compose -f docker/docker-compose.yml up -d --build
+
+          # Show running containers
+          sudo docker ps
         EOF
 
-    - name: Verify deployment
+    - name: Verify Deployment
       run: |
         ssh -i ~/.ssh/task_managment_system_key_pair.pem ubuntu@65.2.186.248 << 'EOF'
-          sleep 5
-          if pgrep -f "python3 run.py" > /dev/null; then
-            echo "✅ Flask app is running"
-            cd /home/ubuntu/flask-app && tail -n 10 app.log
+          sleep 10
+          if sudo docker ps | grep -q "taskmanager_app"; then
+            echo "✅ Flask + Redis are running in Docker"
+            sudo docker logs taskmanager_app --tail=20
           else
-            echo "❌ Flask app failed to start"
-            cd /home/ubuntu/flask-app && cat app.log
+            echo "❌ Deployment failed"
             exit 1
           fi
         EOF
 
     - name: Notify Deployment Success
       run: |
-        echo "🚀 Deployment to EC2 successful!"
+        echo "🚀 Deployment successful!"
         echo "App should be accessible at: http://65.2.186.248:5000"
