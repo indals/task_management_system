@@ -12,6 +12,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_migrate import Migrate
+from flask_socketio import SocketIO
 
 # Initialize extensions globally
 db = SQLAlchemy()
@@ -87,6 +88,15 @@ def create_app(config_name='development'):
         }
     }, supports_credentials=True)
     
+    # Initialize Socket.IO
+    from app.utils.socket_utils import init_socketio
+    socketio = init_socketio(app)
+    
+    # Store socketio in app context for access in other modules
+    app.socketio = socketio
+    print("✅ Socket.IO initialized successfully")
+
+
     # Import models to ensure they are registered with SQLAlchemy
     # This is CRITICAL for Flask-Migrate to work properly
     try:
@@ -178,14 +188,16 @@ def register_health_routes(app):
             return {
                 'status': 'ready',
                 'checks': {
-                    'database': 'ok'
+                    'database': 'ok',
+                    'socket': 'ok' if hasattr(app, 'socketio') else 'not_configured'
                 }
             }, 200
         except Exception as e:
             return {
                 'status': 'not_ready',
                 'checks': {
-                    'database': 'fail'
+                    'database': 'fail',
+                    'socket': 'unknown'
                 },
                 'error': str(e)
             }, 503

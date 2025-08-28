@@ -50,12 +50,29 @@ def main():
     debug = os.getenv('FLASK_DEBUG', 'False').lower() in ['true', '1', 'on']
     
     # Run the application
-    app.run(
-        host=host,
-        port=port,
-        debug=debug,
-        threaded=True
-    )
+    # app.run(
+    #     host=host,
+    #     port=port,
+    #     debug=debug,
+    #     threaded=True
+    # )
+
+    print(f"🌐 Server will start on http://{host}:{port}")
+    print(f"🧪 To test sockets, run: python test_socket_client.py")
+    print("=" * 60)
+    
+    # Run the application with Socket.IO support
+    # Run the application with Socket.IO support
+    if hasattr(app, 'socketio'):
+        app.socketio.run(
+            app, 
+            host=host, 
+            port=port, 
+            debug=debug,
+            allow_unsafe_werkzeug=True  # Allow for development/testing
+        )
+    else:
+        app.run(host=host, port=port, debug=debug, threaded=True)
 
 if __name__ == '__main__':
     main()

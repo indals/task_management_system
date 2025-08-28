@@ -21,5 +21,4 @@ flask-limiter==3.12      # Rate limiting
 email-validator==2.2.0   # Email validation
 bcrypt==4.3.0            # Enhanced password hashing
 python-magic==0.4.27     # File type detection
-
-
+# python-socketio==5.11.0  # Socket.IO support
