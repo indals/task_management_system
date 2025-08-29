@@ -19,29 +19,48 @@ jobs:
         echo "${{ secrets.EC2_KEY }}" > ~/.ssh/dev-flask-key.pem
         chmod 600 ~/.ssh/dev-flask-key.pem
         
-        # Wait for EC2 to be ready and add to known hosts
-        echo "Waiting for EC2 instance to be ready..."
-        for i in {1..15}; do
+        # Debug: Check if we can reach the instance
+        echo "🔍 Testing network connectivity to EC2..."
+        if ping -c 3 13.234.117.223; then
+          echo "✅ EC2 instance is reachable via ping"
+        else
+          echo "⚠️ EC2 instance not responding to ping (this might be normal if ICMP is blocked)"
+        fi
+        
+        # Test if SSH port is open
+        echo "🔍 Testing SSH port connectivity..."
+        if timeout 10 bash -c '</dev/tcp/13.234.117.223/22'; then
+          echo "✅ SSH port 22 is open"
+        else
+          echo "❌ SSH port 22 is not accessible"
+          echo "Please check Security Group settings"
+          exit 1
+        fi
+        
+        # Wait for EC2 SSH service to be ready
+        echo "⏳ Waiting for SSH service to be ready..."
+        for i in {1..20}; do
           if ssh-keyscan -H 13.234.117.223 >> ~/.ssh/known_hosts 2>/dev/null; then
-            echo "✅ Successfully added EC2 to known hosts"
+            echo "✅ Successfully added EC2 to known hosts (attempt $i)"
             break
           else
-            echo "⏳ Attempt $i/15: EC2 not ready, waiting 20 seconds..."
-            sleep 20
+            echo "⏳ Attempt $i/20: SSH service not ready, waiting 15 seconds..."
+            sleep 15
           fi
-          if [ $i -eq 15 ]; then
-            echo "❌ Failed to connect to EC2 after 15 attempts (5 minutes)"
-            echo "Please check:"
-            echo "1. EC2 instance is running: i-07d15c538b46b09ad"
-            echo "2. Security group allows SSH (port 22)"
-            echo "3. Instance has finished initializing"
+          if [ $i -eq 20 ]; then
+            echo "❌ Failed to connect to EC2 SSH after 20 attempts (5 minutes)"
+            echo "Debugging information:"
+            echo "- Instance ID: i-07d15c538b46b09ad"
+            echo "- IP: 13.234.117.223" 
+            echo "- Expected SSH command: ssh -i ~/.ssh/dev-flask-key ubuntu@13.234.117.223"
+            echo "Please check AWS Console for instance status and security groups"
             exit 1
           fi
         done
         
-        # Test SSH connection
-        echo "Testing SSH connection..."
-        ssh -i ~/.ssh/dev-flask-key.pem -o ConnectTimeout=10 ubuntu@13.234.117.223 "echo '✅ SSH connection successful'"
+        # Test actual SSH connection
+        echo "🔍 Testing SSH authentication..."
+        ssh -i ~/.ssh/dev-flask-key.pem -o ConnectTimeout=30 -o StrictHostKeyChecking=no ubuntu@13.234.117.223 "echo '✅ SSH connection successful - $(date)'"
 
     - name: Copy files to EC2
       run: |
