@@ -20,11 +20,11 @@ jobs:
         chmod 600 ~/.ssh/github-actions-key.pem
         
         # Add to known hosts (skip strict checking since we know it works)
-        ssh-keyscan -H 13.127.39.220 >> ~/.ssh/known_hosts 2>/dev/null || echo "Adding to known hosts..."
+        ssh-keyscan -H 35.154.229.200 >> ~/.ssh/known_hosts 2>/dev/null || echo "Adding to known hosts..."
         
         # Test SSH connection
         echo "🔍 Testing SSH connection..."
-        ssh -i ~/.ssh/github-actions-key.pem -o ConnectTimeout=30 -o StrictHostKeyChecking=no ubuntu@13.127.39.220 "echo '✅ SSH connection successful - $(date)'"
+        ssh -i ~/.ssh/github-actions-key.pem -o ConnectTimeout=30 -o StrictHostKeyChecking=no ubuntu@35.154.229.200 "echo '✅ SSH connection successful - $(date)'"
 
     - name: Copy files to EC2
       run: |
@@ -33,11 +33,11 @@ jobs:
           --exclude='*.pyc' \
           --exclude='__pycache__' \
           --exclude='.env*' \
-          . ubuntu@13.127.39.220:/home/ubuntu/taskmanager
+          . ubuntu@35.154.229.200:/home/ubuntu/taskmanager
 
     - name: Create Environment Files
       run: |
-        ssh -i ~/.ssh/github-actions-key.pem ubuntu@13.127.39.220 << 'EOF'
+        ssh -i ~/.ssh/github-actions-key.pem ubuntu@35.154.229.200 << 'EOF'
           mkdir -p /home/ubuntu/taskmanager/env
           
           # Create .env.dev file with all environment variables
@@ -77,7 +77,7 @@ jobs:
 
     - name: Install Dependencies and Deploy
       run: |
-        ssh -i ~/.ssh/github-actions-key.pem ubuntu@13.127.39.220 << 'EOF'
+        ssh -i ~/.ssh/github-actions-key.pem ubuntu@35.154.229.200 << 'EOF'
           set -e
           cd /home/ubuntu/taskmanager
 
@@ -122,7 +122,7 @@ jobs:
 
     - name: Verify Deployment
       run: |
-        ssh -i ~/.ssh/github-actions-key.pem ubuntu@13.127.39.220 << 'EOF'
+        ssh -i ~/.ssh/github-actions-key.pem ubuntu@35.154.229.200 << 'EOF'
           # Check if containers are running
           if sudo docker ps | grep -q "taskmanager_app" && sudo docker ps | grep -q "taskmanager_redis"; then
             echo "✅ Flask + Redis containers are running"
@@ -153,5 +153,5 @@ jobs:
     - name: Notify Deployment Success
       run: |
         echo "🚀 Deployment successful!"
-        echo "App should be accessible at: http://13.127.39.220:5000"
-        echo "SSH access: ssh -i ~/.ssh/github-actions-key ubuntu@13.127.39.220"
+        echo "App should be accessible at: http://35.154.229.200:5000"
+        echo "SSH access: ssh -i ~/.ssh/github-actions-key ubuntu@35.154.229.200"
