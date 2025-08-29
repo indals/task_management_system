@@ -62,7 +62,7 @@ def login():
 
     # Authenticate user
     result = AuthService.login_user(email, password)
-    logger.debug(f"Authentication result for {email}: {result}")
+    logger.info(f"Authentication result for {email}: {result}")
     if not result["success"]:
         logger.warning(f"Login failed for {email}: {result['error']}")
         log_auth_event("Login", email=email, success=False)
