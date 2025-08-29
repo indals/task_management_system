@@ -6,7 +6,7 @@ This script initializes the database with tables and sample data.
 Run with: python scripts/init_db.py
 """
 # from app import create_app, db
-from app.models import User, Project, Task, TaskComment, Notification, Sprint, ProjectMember, TimeLog
+from app.models import User, Project, Task, TaskComment, Notification, Sprint
 from app.models.user import User
 from app.models.enums import TaskPriority, UserRole, TaskStatus, ProjectStatus, NotificationType, TaskType, SprintStatus
 from app.models.task import Task
@@ -16,7 +16,10 @@ from app.models.notification import Notification
 from app.models.sprint import Sprint
 from app.models.project_member import ProjectMember
 from app.models.time_log import TimeLog
-from datetime import datetime, timedelta, UTC
+# from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, timezone
+# from werkzeug.security import generate_password_hash, check_password_hash
+
 import json
 import random
 import os
@@ -33,7 +36,9 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
 from app import create_app, db
-from app.routes import register_all_routes
+from config import DevelopmentConfig
+
+# from app.routes import register_all_routes
 
 def init_database():
     """Initialize database tables and create sample data."""
@@ -43,35 +48,14 @@ def init_database():
     
     print(f"🗃️  Initializing database for {env} environment...")
     
-    # Create app
-    app = create_app(env)
-    register_all_routes(app)
-    
+    # Create app with minimal init (no socket.io, no routes needed)
+    app = create_app(DevelopmentConfig)
+
     with app.app_context():
-        try:
-            # Drop all tables (be careful in production!)
-            if env in ['development', 'testing']:
-                print("🗑️  Dropping existing tables...")
-                db.drop_all()
-            
-            # Create all tables
-            print("🔨 Creating database tables...")
-            db.create_all()
-            
-            # Import models to ensure they're registered
-            from app import models  # noqa: F401
-            
-            print("✅ Database tables created successfully!")
-            
-            # Create sample data for development
-            if env == 'development':
-                create_sample_data()
-            
-            print("🎉 Database initialization completed!")
-            
-        except Exception as e:
-            print(f"❌ Database initialization failed: {e}")
-            raise
+        db.drop_all()
+        db.create_all()
+        print("✅ Database initialized successfully!")
+        create_sample_data()
 
 def create_sample_data():
     """Create sample data for development."""
@@ -224,8 +208,8 @@ def create_sample_data():
             description="Complete redesign of the company's e-commerce platform with modern UI/UX and improved performance", 
             owner_id=manager.id, 
             status=ProjectStatus.ACTIVE,
-            start_date=datetime.now(UTC) - timedelta(days=30),
-            end_date=datetime.now(UTC) + timedelta(days=60),
+            start_date=datetime.now(timezone.utc) - timedelta(days=30),
+            end_date=datetime.now(timezone.utc) + timedelta(days=60),
             estimated_hours=800.0,
             technology_stack=json.dumps(["React", "Node.js", "PostgreSQL", "Redis", "AWS"]),
             client_name="Tech Corp Inc.",
@@ -237,8 +221,8 @@ def create_sample_data():
             description="Native mobile application for iOS and Android platforms with real-time features", 
             owner_id=team_lead.id, 
             status=ProjectStatus.ACTIVE,
-            start_date=datetime.now(UTC) - timedelta(days=20),
-            end_date=datetime.now(UTC) + timedelta(days=90),
+            start_date=datetime.now(timezone.utc) - timedelta(days=20),
+            end_date=datetime.now(timezone.utc) + timedelta(days=90),
             estimated_hours=1200.0,
             technology_stack=json.dumps(["React Native", "Firebase", "Node.js", "MongoDB"]),
             client_name="StartupXYZ",
@@ -250,8 +234,8 @@ def create_sample_data():
             description="Migrate legacy database to cloud infrastructure with performance optimization", 
             owner_id=admin.id, 
             status=ProjectStatus.COMPLETED,
-            start_date=datetime.now(UTC) - timedelta(days=90),
-            end_date=datetime.now(UTC) - timedelta(days=10),
+            start_date=datetime.now(timezone.utc) - timedelta(days=90),
+            end_date=datetime.now(timezone.utc) - timedelta(days=10),
             estimated_hours=400.0,
             technology_stack=json.dumps(["PostgreSQL", "AWS RDS", "Docker", "Python"])
         )
@@ -261,8 +245,8 @@ def create_sample_data():
             description="Comprehensive admin dashboard for internal analytics, user management, and reporting", 
             owner_id=indal.id, 
             status=ProjectStatus.ACTIVE,
-            start_date=datetime.now(UTC) - timedelta(days=15),
-            end_date=datetime.now(UTC) + timedelta(days=45),
+            start_date=datetime.now(timezone.utc) - timedelta(days=15),
+            end_date=datetime.now(timezone.utc) + timedelta(days=45),
             estimated_hours=600.0,
             technology_stack=json.dumps(["Flask", "React", "PostgreSQL", "Chart.js", "Docker"])
         )
@@ -272,8 +256,8 @@ def create_sample_data():
             description="Advanced feedback collection and analysis system with AI-powered insights", 
             owner_id=analyst.id, 
             status=ProjectStatus.ON_HOLD,
-            start_date=datetime.now(UTC) + timedelta(days=30),
-            end_date=datetime.now(UTC) + timedelta(days=120),
+            start_date=datetime.now(timezone.utc) + timedelta(days=30),
+            end_date=datetime.now(timezone.utc) + timedelta(days=120),
             estimated_hours=500.0,
             technology_stack=json.dumps(["Python", "FastAPI", "PostgreSQL", "Machine Learning", "React"])
         )
@@ -283,8 +267,8 @@ def create_sample_data():
             description="Complete CI/CD pipeline setup with monitoring and automated deployments", 
             owner_id=devops.id, 
             status=ProjectStatus.ACTIVE,
-            start_date=datetime.now(UTC) - timedelta(days=10),
-            end_date=datetime.now(UTC) + timedelta(days=30),
+            start_date=datetime.now(timezone.utc) - timedelta(days=10),
+            end_date=datetime.now(timezone.utc) + timedelta(days=30),
             estimated_hours=300.0,
             technology_stack=json.dumps(["Docker", "Kubernetes", "Jenkins", "AWS", "Terraform", "Prometheus"])
         )
@@ -359,8 +343,8 @@ def create_sample_data():
             description="Setup project foundation, basic authentication, and database schema",
             project_id=project1.id,
             status=SprintStatus.COMPLETED,
-            start_date=datetime.now(UTC) - timedelta(days=28),
-            end_date=datetime.now(UTC) - timedelta(days=14),
+            start_date=datetime.now(timezone.utc) - timedelta(days=28),
+            end_date=datetime.now(timezone.utc) - timedelta(days=14),
             goal="Establish solid project foundation and core functionality",
             capacity_hours=160.0,
             velocity_points=25
@@ -371,8 +355,8 @@ def create_sample_data():
             description="Implement product catalog, shopping cart, and checkout process",
             project_id=project1.id,
             status=SprintStatus.ACTIVE,
-            start_date=datetime.now(UTC) - timedelta(days=14),
-            end_date=datetime.now(UTC),
+            start_date=datetime.now(timezone.utc) - timedelta(days=14),
+            end_date=datetime.now(timezone.utc),
             goal="Deliver core e-commerce functionality",
             capacity_hours=160.0,
             velocity_points=30
@@ -384,8 +368,8 @@ def create_sample_data():
             description="Project setup, navigation, and basic UI components",
             project_id=project2.id,
             status=SprintStatus.ACTIVE,
-            start_date=datetime.now(UTC) - timedelta(days=14),
-            end_date=datetime.now(UTC),
+            start_date=datetime.now(timezone.utc) - timedelta(days=14),
+            end_date=datetime.now(timezone.utc),
             goal="Setup mobile app foundation",
             capacity_hours=120.0,
             velocity_points=20
@@ -397,8 +381,8 @@ def create_sample_data():
             description="Build main dashboard layout and user management features",
             project_id=project4.id,
             status=SprintStatus.PLANNED,
-            start_date=datetime.now(UTC),
-            end_date=datetime.now(UTC) + timedelta(days=14),
+            start_date=datetime.now(timezone.utc),
+            end_date=datetime.now(timezone.utc) + timedelta(days=14),
             goal="Create functional admin dashboard",
             capacity_hours=140.0,
             velocity_points=22
@@ -427,8 +411,8 @@ def create_sample_data():
                 created_by_id=manager.id,
                 project_id=project1.id,
                 sprint_id=sprint1.id,
-                due_date=datetime.now(UTC) - timedelta(days=25),
-                completion_date=datetime.now(UTC) - timedelta(days=24),
+                due_date=datetime.now(timezone.utc) - timedelta(days=25),
+                completion_date=datetime.now(timezone.utc) - timedelta(days=24),
                 estimated_hours=8.0,
                 actual_hours=6.5,
                 story_points=5
@@ -444,8 +428,8 @@ def create_sample_data():
                 created_by_id=manager.id,
                 project_id=project1.id,
                 sprint_id=sprint1.id,
-                due_date=datetime.now(UTC) - timedelta(days=20),
-                completion_date=datetime.now(UTC) - timedelta(days=19),
+                due_date=datetime.now(timezone.utc) - timedelta(days=20),
+                completion_date=datetime.now(timezone.utc) - timedelta(days=19),
                 estimated_hours=16.0,
                 actual_hours=18.5,
                 story_points=8,
@@ -462,8 +446,8 @@ def create_sample_data():
                 created_by_id=manager.id,
                 project_id=project1.id,
                 sprint_id=sprint1.id,
-                due_date=datetime.now(UTC) - timedelta(days=18),
-                completion_date=datetime.now(UTC) - timedelta(days=16),
+                due_date=datetime.now(timezone.utc) - timedelta(days=18),
+                completion_date=datetime.now(timezone.utc) - timedelta(days=16),
                 estimated_hours=20.0,
                 actual_hours=22.0,
                 story_points=8,
@@ -481,8 +465,8 @@ def create_sample_data():
                 created_by_id=manager.id,
                 project_id=project1.id,
                 sprint_id=sprint2.id,
-                due_date=datetime.now(UTC) + timedelta(days=5),
-                start_date=datetime.now(UTC) - timedelta(days=10),
+                due_date=datetime.now(timezone.utc) + timedelta(days=5),
+                start_date=datetime.now(timezone.utc) - timedelta(days=10),
                 estimated_hours=32.0,
                 actual_hours=20.0,
                 story_points=13,
@@ -499,7 +483,7 @@ def create_sample_data():
                 created_by_id=manager.id,
                 project_id=project1.id,
                 sprint_id=sprint2.id,
-                due_date=datetime.now(UTC) + timedelta(days=8),
+                due_date=datetime.now(timezone.utc) + timedelta(days=8),
                 estimated_hours=24.0,
                 story_points=8,
                 acceptance_criteria="Users can add products to cart, modify quantities, and proceed to checkout"
@@ -515,8 +499,8 @@ def create_sample_data():
                 created_by_id=manager.id,
                 project_id=project1.id,
                 sprint_id=sprint2.id,
-                due_date=datetime.now(UTC) + timedelta(days=3),
-                start_date=datetime.now(UTC) - timedelta(days=8),
+                due_date=datetime.now(timezone.utc) + timedelta(days=3),
+                start_date=datetime.now(timezone.utc) - timedelta(days=8),
                 estimated_hours=16.0,
                 actual_hours=14.0,
                 story_points=5
@@ -533,8 +517,8 @@ def create_sample_data():
                 created_by_id=team_lead.id,
                 project_id=project2.id,
                 sprint_id=sprint3.id,
-                due_date=datetime.now(UTC) - timedelta(days=10),
-                completion_date=datetime.now(UTC) - timedelta(days=11),
+                due_date=datetime.now(timezone.utc) - timedelta(days=10),
+                completion_date=datetime.now(timezone.utc) - timedelta(days=11),
                 estimated_hours=12.0,
                 actual_hours=10.0,
                 story_points=5
@@ -550,8 +534,8 @@ def create_sample_data():
                 created_by_id=team_lead.id,
                 project_id=project2.id,
                 sprint_id=sprint3.id,
-                due_date=datetime.now(UTC) + timedelta(days=5),
-                start_date=datetime.now(UTC) - timedelta(days=5),
+                due_date=datetime.now(timezone.utc) + timedelta(days=5),
+                start_date=datetime.now(timezone.utc) - timedelta(days=5),
                 estimated_hours=20.0,
                 actual_hours=12.0,
                 story_points=8
@@ -567,7 +551,7 @@ def create_sample_data():
                 assigned_to_id=emp1.id,
                 created_by_id=emp2.id,
                 project_id=project1.id,
-                due_date=datetime.now(UTC) + timedelta(days=2),
+                due_date=datetime.now(timezone.utc) + timedelta(days=2),
                 estimated_hours=4.0,
                 story_points=3,
                 labels=json.dumps(["bug", "authentication", "urgent"])
@@ -582,7 +566,7 @@ def create_sample_data():
                 assigned_to_id=indal.id,
                 created_by_id=team_lead.id,
                 project_id=project1.id,
-                due_date=datetime.now(UTC) + timedelta(days=7),
+                due_date=datetime.now(timezone.utc) + timedelta(days=7),
                 estimated_hours=12.0,
                 story_points=5,
                 labels=json.dumps(["performance", "database", "optimization"])
@@ -662,7 +646,7 @@ def create_sample_data():
                 hours_per_day = task.actual_hours / days_worked
                 
                 for i in range(days_worked):
-                    log_date = task.completion_date - timedelta(days=days_worked-i-1) if task.completion_date else datetime.now(UTC).date()
+                    log_date = task.completion_date - timedelta(days=days_worked-i-1) if task.completion_date else datetime.now(timezone.utc).date()
                     daily_hours = round(hours_per_day + random.uniform(-1, 1), 1)
                     if daily_hours > 0:
                         time_logs.append(TimeLog(
@@ -680,7 +664,7 @@ def create_sample_data():
                 hours_per_day = task.actual_hours / days_worked
                 
                 for i in range(days_worked):
-                    log_date = datetime.now(UTC) - timedelta(days=days_worked-i-1)
+                    log_date = datetime.now(timezone.utc) - timedelta(days=days_worked-i-1)
                     daily_hours = round(hours_per_day + random.uniform(-0.5, 0.5), 1)
                     if daily_hours > 0:
                         time_logs.append(TimeLog(
@@ -723,7 +707,7 @@ def create_sample_data():
 
         # Overdue task notifications
         overdue_tasks = db.session.query(Task).filter(
-            Task.due_date < datetime.now(UTC),
+            Task.due_date < datetime.now(timezone.utc),
             Task.status.notin_([TaskStatus.DONE, TaskStatus.CANCELLED])
         ).all()
         
