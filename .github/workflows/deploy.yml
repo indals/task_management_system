@@ -13,12 +13,35 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Add SSH Key
+    - name: Add SSH Key and Wait for EC2
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.EC2_KEY }}" > ~/.ssh/dev-flask-key.pem
         chmod 600 ~/.ssh/dev-flask-key.pem
-        ssh-keyscan -H 13.234.117.223 >> ~/.ssh/known_hosts
+        
+        # Wait for EC2 to be ready and add to known hosts
+        echo "Waiting for EC2 instance to be ready..."
+        for i in {1..15}; do
+          if ssh-keyscan -H 13.234.117.223 >> ~/.ssh/known_hosts 2>/dev/null; then
+            echo "✅ Successfully added EC2 to known hosts"
+            break
+          else
+            echo "⏳ Attempt $i/15: EC2 not ready, waiting 20 seconds..."
+            sleep 20
+          fi
+          if [ $i -eq 15 ]; then
+            echo "❌ Failed to connect to EC2 after 15 attempts (5 minutes)"
+            echo "Please check:"
+            echo "1. EC2 instance is running: i-07d15c538b46b09ad"
+            echo "2. Security group allows SSH (port 22)"
+            echo "3. Instance has finished initializing"
+            exit 1
+          fi
+        done
+        
+        # Test SSH connection
+        echo "Testing SSH connection..."
+        ssh -i ~/.ssh/dev-flask-key.pem -o ConnectTimeout=10 ubuntu@13.234.117.223 "echo '✅ SSH connection successful'"
 
     - name: Copy files to EC2
       run: |
